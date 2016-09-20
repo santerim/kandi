@@ -1,2 +1,2 @@
 # Das Kandi
-Kandidaatin tutkielma
+Kandidaatintutkielma

@@ -171,7 +171,7 @@ Dijkstran algoritmia käytetään edelleen muun muassa joissakin tietoliikenneve
 
 \subsection{A*-algoritmi}
 
-Dijkstran algoritmiin perustuva A* toteuttaa niin sanottua paras ensin -tyyliä, jossa jokaisen solmun tai solun kohdalla pyritään ensiksi etenemään suoraan kohti maalia. Jos tiellä on jokin este, algoritmi pyrkii kiertämään sen. Tämä tapahtuu etenemällä valitsemalla tähänastisen reitin viereisistä soluista ne joista arvioidaan olevan lyhyin etäisyys maaliin. Tätä jatketaan kunnes joko päästään kohteeseen, tai selviää että reittiä ei ole. A* poikkeaa siis Dijkstran algoritmista hakeutumalla koko ajan maalin suuntaan. Tämä tapahtuu heuristiikkafunktion avulla.
+Dijkstran algoritmiin perustuva A* toteuttaa niin sanottua paras ensin -tyyliä, jossa jokaisen solmun tai solun kohdalla pyritään ensiksi etenemään suoraan kohti maalia. Jos tiellä on jokin este, algoritmi pyrkii kiertämään sen. Tämä tapahtuu etenemällä valitsemalla tähänastisen reitin viereisistä soluista ne joista arvioidaan olevan lyhyin etäisyys maaliin. Tätä jatketaan kunnes joko päästään kohteeseen, tai selviää että reittiä ei ole. A* poikkeaa siis Dijkstran algoritmista hakeutumalla koko ajan maalin suuntaan, mikä tapahtuu heuristiikkafunktion avulla (algoritmi \ref{alg_astar}:n rivi 13).
 
 Kaikille algoritmin käsittelemille solmuille lasketaan arvo kaavalla \begin{equation}\label{astarkaava}{f(n) = g(n)+h(n)}\end{equation} missä $g(n)$ on lyhin tunnettu reitti lähtösolmusta solmuun $n$ ja $h(n)$ on heuristinen arvio etäisyydestä maalisolmuun~\cite{sharon15, stout96}. Näin jokaisen läpikäydyn solmun kohdalla tiedetään sille lasketusta arvosta kuinka suoralla reitillä kohteeseen ollaan. Solmuille voidaan myös asettaa edellämainittuun kaavaan lisättävä arvo tekemään siihen siirtymisestä hintavampaa ja näin mallintaa hitaampaa kulkuyhteyttä kahden paikan välillä.
 
@@ -197,7 +197,7 @@ Kuvassa \ref{astar} voidaan nähdä ero A*-algoritmin toimintaperiaatteessa. Nyt
 
 \begin{algorithm}
 \caption{A*-algoritmin pseudokoodi}
-\label{alg1}
+\label{alg_astar}
 \begin{algorithmic}[1]
 	\Procedure{Astar}{startnode, goalnode}
 	\State initialize the open list
@@ -225,6 +225,8 @@ Kuvassa \ref{astar} voidaan nähdä ero A*-algoritmin toimintaperiaatteessa. Nyt
 	\EndProcedure
 \end{algorithmic}
 \end{algorithm}
+
+\subsection{Puurakenteet}
 
 \section{Rinnakkainen reitinhaku}
 
@@ -293,16 +295,54 @@ WHCA* eroaa HCA*:sta siinä, että konkreettisen topologian tasolla reittejä ei
 
 \subsubsection{Conflict-Based Search (CBS)}
 
-Rinnakkaisen reitinhaun optimoimiseen pyrkivä CBS-algoritmi~\cite{sharon15} käyttää kaksitasoista lähestymistapaa, missä ensin käydään läpi ylemmän tason binääristä rajoituspuuta (constraint tree). Rajoituspuun jokaisessa solmussa on joukko rajoitteita (tieto siitä milloin joku topologian solmu on jonkun toimijan varaama), jotka kuuluvat jollekin yksittäiselle toimijalle. Toisekseen rajoituspuun solmuihin on myös talletettu joukko alemmalta tasolta saatuja reittejä, yksi jokaista toimijaa kohti, joiden tulee olla vapaita tiedetyistä yhteentörmäyksistä. Kolmantena niissä on myös yhteenlaskettu solmun reittikustannus, joka koostuu yksittäisen toimijan koko siihenastisen polun kustannuksesta. Rajoituspuu on järjestetty reittikustannuksen mukaan.\newline
+Rinnakkaisen reitinhaun optimoimiseen pyrkivä CBS-algoritmi~\cite{sharon15} käyttää kaksitasoista lähestymistapaa, missä ensin käydään läpi ylemmän tason binääristä rajoituspuuta (constraint tree). Rajoituspuun jokaisessa solmussa on joukko rajoitteita (tieto siitä milloin joku topologian solmu on jonkun toimijan varaama), jotka kuuluvat jollekin yksittäiselle toimijalle. Toisekseen rajoituspuun solmuihin on myös talletettu joukko alemmalta tasolta saatuja reittejä, yksi jokaista toimijaa kohti, joiden tulee olla vapaita tiedetyistä yhteentörmäyksistä. Kolmantena niissä on myös yhteenlaskettu solmun reittikustannus, joka koostuu yksittäisen toimijan koko siihenastisen polun kustannuksesta. Rajoituspuu on järjestetty reittikustannuksen mukaan.
 
 Alemmalla tasolla puolestaan voidaan käyttää tavanomaista yhden toimijan reitinhakualgoritmia kuten A* käyttäen samalla hyväksi ylemmältä tasolta saatua tietoa siitä, milloin ja missä on odotettavissa yhteentörmäys jonkun toisen toimijan kanssa. Mikäli kaikesta huolimatta alemmalla tasolla havaitaan yhteentörmäyksiä, päivitetään ylemmän tason rajoituspuuta vastaavasti ja laajennetaan rajoituspuuta lisäämällä siihen solmuja uusin rajoittein. 
 [selvennys, solmujen lapset]
+\newline
 
-\subsubsection{Improved Conflict-Based Search (ICBS) -- sulautus?}
+Improved Conflict-Based Search (ICBS)
 
-\subsubsection{Multi-agent Rapidly-exploring Random Tree  --ehkä ei}
+\begin{algorithm}
+\caption{High-level of ICBS}
+\label{alg_icbs}
+\begin{algorithmic}[1]
+\State\textbf{Main(MAPF problem} instance\textbf{)}
+	\State\indent Init $R$ with low-level paths for the individual agents
+	\State\indent insert $R$ into OPEN
+	\State\indent\textbf{while} OPEN $not$ $empty$ \textbf{do}
+		\State\indent\indent $N\leftarrow$ best node from OPEN \textit{// lowest solution cost}
+		\State\indent\indent Simulate the paths in $N$ and find all conflicts
+		\State\indent\indent\textbf{if} $N$ \textit{has no conflict} \textbf{then}
+		\State\indent\indent\indent\textbf{return} $N.solution$ \textit{// N is goal}
+		\State\indent\indent $C\leftarrow$ find-cardinal/semi-cardinal-conflict($N$) \textit{// (PC)}
+		\State\indent\indent\textbf{if} \textit{C is not cardinal} \textbf{then}
+			\State\indent\indent\indent\textbf{if} \textit{Find-bypass(N, C)} \textbf{then} \textit{// (BP)}
+				\State\indent\indent\indent\indent Continue
+		\State\indent\indent\textbf{if} \textit{should-merge($a_i$, $a_j$)} \textbf{then} \textit{// Optional, MA-CBS:}
+			\State\indent\indent\indent $a_{ij}$ = merge($a_i$, $a_j$)
+			\State\indent\indent\indent\textbf{if} \textit{MR active} \textbf{then} \textit{// (MR)}
+				\State\indent\indent\indent\indent Restart search
+			\State\indent\indent\indent Update N.constraints()
+			\State\indent\indent\indent Update N.solution by invoking low-level($a_{ij}$)
+			\State\indent\indent\indent Insert N back into OPEN
+			\State\indent\indent\indent continue \textit{// go back to the while statement}
+		\State\indent\indent\textbf{foreach} \textit{agent $a_i$ in C} \textbf{do}
+			\State\indent\indent\indent $A\leftarrow$ Generate Child($N$, (\textit{$a_i$, s, t}))
+			\State\indent\indent\indent Insert $A$ into OPEN
+\State\textbf{Generate Child(Node $N$, Constraint $C$ =} \textit{($a_i$, s, t)}\textbf{)}
+\State\indent$A.constraints\leftarrow$ $N.constraints$ + \textit{($a_i$, s, t)}
+\State\indent$A.solution\leftarrow N.solution$
+\State\indent Update $A.solution$ by invoking \textit{low level}($a_i$)
+\State\indent$A.cost\leftarrow$ \textit{SIC}($A.solution$)
+\State\indent\textbf{return} $A$
 
-MA-RRT*
+\end{algorithmic}
+\end{algorithm}
+
+\subsubsection{Multi-agent Rapidly-exploring Random Tree (MA-RRT*)}
+
+
 
 \subsubsection{Increasing Cost Tree Search}
 

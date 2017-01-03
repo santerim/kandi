@@ -133,14 +133,9 @@
 
 \section{Johdanto}
 
-Tässä tutkielmassa keskitytään tarkastelemaan monen yhtaikaisen toimijan (agent) reitinhakuongelmaa videopeleissä. Videopeleille on tyypillistä usean eri toimijan (agent) yhtaikainen toiminta pelikentällä, mikä edellyttää toistuvaa reitinhakua kullekin toimijalle.
-Reitinhaussa on pohjimmiltaan kyse mahdollisimman suoran ja nopean polun löytämisestä kahden pisteen välillä jossakin topologiassa. Pelimaailman topologia eli kenttä tai alue, jolla pelaaja ja mahdolliset ei-pelaajahahmot voivat liikkua, voi olla ulkoasultaan hyvin abstrakti ja pelkistetty, tai toisaalta vaikuttaa hyvinkin realistiselta maastolta puineen, vesistöineen, rakennuksineen ja niin edelleen.
+Tässä tutkielmassa keskitytään tarkastelemaan monen yhtaikaisen toimijan (agent) reitinhakuongelmaa ja sen ratkaisemiseksi kehitettyjä algoritmeja. Reitinhaussa on pohjimmiltaan kyse mahdollisimman suoran ja nopean polun löytämisestä kahden pisteen välillä jossakin topologiassa. Topologia, eli kenttä tai alue, voi olla reaalimaailmassa, kuten tieverkosto autonavigaattorin reitinhaussa tai vaikkapa kokoonpanolinjan robotin käytettävissä oleva liikkumatila. Topologia voi myös olla täysin virtuaalinen, kuten tietokonepelien pelimaailmat. Muita käyttökohteita ovat muun muassa liikenteen ja väkijoukkojen mallintaminen, poliisin ja pelastustoimen tehtävät, sekä tietoliikenneverkot. Käyttökohteesta riippumatta topologia, jossa reittejä etsitään, on mallinnettava tietorakenteiksi sen läpikäyntiä varten.
 
-Tyypillisesti kenttä muodostetaan soluista (cell), joista toisinaan käytetään myös nimitystä laatta (tile). Solut ovat käytännössä monikulmioita, usein joko kolmioita, neliöitä tai kuusikulmioita. Edellämainitut muodot ovat ainoat monikulmiot, joita yhdistelemällä voidaan jokin alue kattaa yhtenäisesti ilman väliin jääviä aukkoja, mikäli kenttä halutaan mallintaa keskenään samankokoisilla soluilla. Mallinnus voidaan tehdä myös vaihtelevan kokoisilla monikulmioilla. Solut joissa kentällä voidaan liikkua muodostavat reitinhaussa käytettävän verkon (graph) solmut (vertex)~\cite{botea13, cui11}.
-\newline\newline
-[seuraava kappale uusiksi, jako kahtia toimintaperiaatteen mukaan ja laajennus, ehkä tekniset toteutukset kokonaan reitinhaun puolelle?]\newline\newline
-Kyseessä on siis verkko \texttt{G=(V,E)}, missä \texttt{V} (vertex) on joukko solmuja ja \texttt{E} (edge) joukko solmuja yhdistäviä kaaria. Liikkuminen voi tapahtua joko solmusta toiseen, tai sitten solmut voivat edustaa kiintopisteitä joiden läheisyydessä voidaan liikkua ilman erillistä reitinhakua. Solmut voivat myös toimia esteinä, jolloin niihin liikkuminen on estetty. Tämä voi myös olla vain väliaikainen tila esimerkiksi jonkun toisen toimijan ollessa liikkumisen tiellä. Molemmissa tapauksissa täytyy luonnollisesti löytää reitti esteen ympäri. Topologia voi siis olla dynaaminen, eli sen rakenne saattaa muuttua kesken reittien läpikäymisen, mikä asettaa omat haasteensa reitinhaulle~\cite{botea13, algfoor15}.
-
+Oli reitinhaun sovelluskohde mikä hyvänsä, on selvää että mikäli varsinaista reitinhakua tarvitaan, ei reitin löytäminen ainakaan jokaisella suorituskerralla voi olla täysin suoraviivaista ja triviaalia. Jos se olisi, asia voitaisiin ratkaista yksinkertaisesti laskemalla lyhin etäisyys mitä pitkin liikkua suoraan kohteeseen ja toimia sen mukaan. Kysymys on siis reittien löytämisestä tietyin reunaehdoin. Jos ajattelemme esimerkiksi navigaattoria käyttävää autoilijaa, tämä haluaa kaikella todennäköisyydellä ajaa määränpäähänsä lyhintä reittiä teitä pitkin oikaisematta yhdenkään metsän tai järven lävitse.
 
 % Write some science here.
 
@@ -148,11 +143,17 @@ Kyseessä on siis verkko \texttt{G=(V,E)}, missä \texttt{V} (vertex) on joukko 
 
 \section{Reitinhaku}
 
-Pelimaailmat koostuvat harvoin täysin esteettömistä kentistä, joten tekoälyn kontrolloimien pelihahmojen on usein kierrettävä esteiden ympäri. Eräs lähestymistapa on kaikkien mahdollisten reittien laskeminen ennakkoon, jolloin haluttu reitti kahden sijainnin välillä yksinkertaisesti haetaan taulukosta tarvittaessa. 
+Reitinhaun toteuttaminen jakaantuu kahteen vaiheeseen: Toimintaympäristöstä tai topologiasta muodostetaan ensin yksinkertaistettu malli, minkä jälkeen sitä käydään läpi jollakin algoritmilla halutun reitin löytämiseksi. Algoritmia ohjaa heuristiikkafunktio jolla arvioidaan etäisyyttä kohteeseen ja voidaan siten vertailla eri reittivaihtoehtojen keskinäistä paremmuutta. Jonkin reitin paremmuuteen muihin nähden voi vaikuttaa pituuden lisäksi myös sen nopeus.
 
-Reitinhaku jakaantuu kahteen vaiheeseen: Toimintaympäristöstä muodostetaan ensin yksinkertaistettu malli, minkä jälkeen sitä käydään läpi jollakin algoritmilla halutun reitin löytämiseksi. Algoritmia ohjaa heuristiikkafunktio jolla arvioidaan etäisyyttä kohteeseen ja siten määritetään eri reittivaihtoehtojen keskinäinen paremmuus.
+Mallinnettavasta ympäristöstä riippumatta kyseessä on käytännössä verkko \texttt{G=(V,E)}, missä \texttt{V} (vertex) on joukko solmuja ja \texttt{E} (edge) joukko solmuja yhdistäviä kaaria. Liikkuminen voi esimerkiksi tapahtua solmusta toiseen, tai sitten solmut voivat edustaa kiintopisteitä joiden läheisyydessä voidaan liikkua ilman erillistä reitinhakua. Solmut voivat myös toimia esteinä, jolloin niihin liikkuminen on estetty. Tämä voi myös olla vain solmun väliaikainen tila esimerkiksi jonkun toisen toimijan ollessa liikkumisen tiellä. Verkko voi siis olla dynaaminen, eli sen rakenne saattaa muuttua kesken reittien läpikäymisen, mikä asettaa omat haasteensa reitinhaulle~\cite{botea13, algfoor15}.
 
-Peliteollisuuden standardialgoritmi tähän tarkoitukseen on nimeltään A* (eli A-star tai A-tähti), joka perustuu niin kutsuttuun Dijkstran algoritmiin. A*:stä on kehitetty lukuisia eri variantteja eri toimintaympäristöjä ja tarpeita silmälläpitäen. Sen etuja on, että se pystyy varmuudella löytämään reitin kohteeseen, jos sellainen on ylipäänsä olemassa. Niinikään se antaa parhaan mahdollisen reitin useista vaihtoehdoista, mikäli sen heuristiikkafunktio ei yliarvioi etäisyyttä kohteeseen~\cite{cui11, sharon15, botea04}. Tärkeisiin heuristisiin algoritmeihin kuuluvat myös iteratiivinen syvyys-A* (iterative-deepening-A*, IDA*) ja syvyyssuuntainen haarautuva rajattu (depth-first branch-and-bound, DFBnB) algoritmit~\cite{felner2004additive}.
+Edellämainittujen esteiden ja muuttuvan toimintaympäristön lisäksi reitinhaun keskeisiä ongelmia on resurssien käyttö. Mitä laajemmassa topologiassa reitinhaku suoritetaan, sitä enemmän laskentaresursseja (muistia, prosessoriaikaa) siihen menee. Joissakin tilanteissa voidaan tyytyä osittaiseen reitinhakuun, eli reittiä ei lasketa loppuun asti, vaan ainoastaan johonkin tiettyyn ennaltamäärättyyn pisteeseen ja uusi reitinhaku tehdään kun jokin välietappi on saavutettu. Tässä on luonnollisesti varmistuttava siitä, että valittuun suuntaan lähteminen todella mahdollistaa perille pääsemisen. Toinen lähestymistapa on kaikkien mahdollisten reittien laskeminen ennakkoon, jolloin haluttu reitti kahden sijainnin välillä yksinkertaisesti haetaan taulukosta tarvittaessa. Tämän menetelmän heikkoutena on, että kyseisestä taulukosta saattaa tulla niin suuri, että varsinainen reitinhaku on nopeampi toteuttaa. Niinikään se vaatii käytännössä mainitun taulukon pitämistä jatkuvasti muistissa.
+
+%pelimaailman tyypillinen tilanne tähän
+
+%Tyypillisesti kenttä muodostetaan soluista (cell), joista toisinaan käytetään myös nimitystä laatta (tile). Solut ovat käytännössä monikulmioita, usein joko kolmioita, neliöitä tai kuusikulmioita. Edellämainitut muodot ovat ainoat monikulmiot, joita yhdistelemällä voidaan jokin alue kattaa yhtenäisesti ilman väliin jääviä aukkoja, mikäli kenttä halutaan mallintaa keskenään samankokoisilla soluilla. Mallinnus voidaan tehdä myös vaihtelevan kokoisilla monikulmioilla. Solut joissa kentällä voidaan liikkua muodostavat reitinhaussa käytettävän verkon (graph) solmut (vertex)~\cite{botea13, cui11}.
+
+Reitinhaun standardialgoritmi on jo pitkään ollut A* (eli A-star tai A-tähti), joka perustuu niin kutsuttuun Dijkstran algoritmiin, ja josta on kehitetty lukuisia eri variantteja eri toimintaympäristöjä ja tarpeita silmälläpitäen. Sen etuja on, että se pystyy varmuudella löytämään reitin kohteeseen, jos sellainen on ylipäätään olemassa. Niinikään se antaa parhaan mahdollisen reitin useista vaihtoehdoista, mikäli sen heuristiikkafunktio ei yliarvioi etäisyyttä kohteeseen~\cite{cui11, sharon15, botea04}. Tärkeisiin heuristisiin algoritmeihin kuuluvat myös iteratiivinen syvyys-A* (iterative-deepening-A*, IDA*) ja syvyyssuuntainen haarautuva rajattu (depth-first branch-and-bound, DFBnB)~\cite{felner2004additive}.
 
 \subsection{Dijkstran algoritmi}
 
@@ -230,45 +231,47 @@ Kuvassa \ref{astar} voidaan nähdä ero A*-algoritmin toimintaperiaatteessa. Nyt
 
 \section{Rinnakkainen reitinhaku}
 
-Videopeleissä on yleensä useita, jopa satoja tai tuhansia, eri toimijoita, joille on löydettävä reitit kohteisiinsa. Tällainen monen toimijan rinnakkainen reitinhaku (multi-agent pathfinding, MAPF) tuo yksittäisen toimijan reitinhakuun verrattuna uusia ongelmia. On ratkaistava muun muassa sallitaanko reittien risteäminen, voiko kaksi tai useampi toimijaa olla samaan aikaan samassa paikassa, tuleeko liikkumista porrastaa odottamalla että reitti edessä vapautuu ja tuleeko toimijan väistää ollessaan toisen tiellä~\cite{erdem13}. Näiden ongelmien ratkaisemiseen kehitetyistä algoritmeja useimmat hyödyntävät A*-algoritmia~\cite{sharon15}.
+Rinnakkaisessa reitinhaussa on yleensä useita, joskus jopa satoja tai tuhansia, eri toimijoita. Kaikille näille on löydettävä reitit kohteisiinsa. Tällainen monen toimijan rinnakkainen reitinhaku (multi-agent pathfinding, MAPF) tuo yksittäisen toimijan reitinhakuun verrattuna uusia ongelmia. On ratkaistava muun muassa sallitaanko reittien risteäminen, voiko kaksi tai useampi toimijaa olla samaan aikaan samassa paikassa, tuleeko liikkumista porrastaa odottamalla että reitti edessä vapautuu ja tuleeko toimijan väistää ollessaan toisen tiellä~\cite{erdem13}. Näiden ongelmien ratkaisemiseen kehitetyistä algoritmeja useimmat hyödyntävät A*-algoritmia jollakin tapaa~\cite{sharon15}.
 
-Mitä enemmän toimijoita tutkittavalla alueella on, sitä oleellisemmaksi muodostuu yhteentörmäyksien ja tahattoman reittien sulkemisen Yksi oleellinen ero lähestymistavoissa on käsitelläänkö toimijoita yhdistettynä (coupled) toimijana, vai toisistaan erotettuina (decoupled) toimijoina. Erotetussa menetelmässä reitit lasketaan jokaiselle toimijalle erikseen ja mahdolliset yhteentörmäykset ratkaistaan valitulla menettelyllä sikäli kuin niitä tapahtuu. Tämä menetelmä on tyypillinen tilanteille, joissa toimijoita on verrattaen paljon~\cite{sharon2013}.
+Mitä enemmän toimijoita tutkittavalla alueella on, sitä oleellisemmaksi muodostuu yhteentörmäyksien ja tahattoman reittien sulkemisen välttäminen. Yksi oleellinen ero lähestymistavoissa on käsitelläänkö toimijoita yhdistettynä (coupled) toimijana, vai toisistaan erotettuina (decoupled) toimijoina. Erotetussa menetelmässä reitit lasketaan jokaiselle toimijalle erikseen ja mahdolliset yhteentörmäykset ratkaistaan valitulla menettelyllä sikäli kuin niitä tapahtuu. Tämä menetelmä on tyypillinen tilanteille, joissa toimijoita on verrattaen paljon~\cite{sharon2013}. Yhdistetyssä menetelmässä kaikkia toimijoita käsitellään sen sijaan kokonaisuutena. Tämä voidaan toteuttaa esimerkiksi varaamalla graafin solmuja toimijoiden käyttöön siksi aikaa kun näiden odotetaan oman reitinhakunsa perusteella niissä olevan. Lukuisten toimijoiden yhtäaikainen huomioonottaminen luonnollisesti lisää ongelman monimutkaisuutta.
 
-Yhdistetyssä menetelmässä kaikkia toimijoita käsitellään sen sijaan kokonaisuutena. Tämä voidaan toteuttaa esimerkiksi varaamalla graafin solmuja toimijoiden käyttöön siksi aikaa kun näiden odotetaan oman reitinhakunsa perusteella niissä olevan. Lukuisten toimijoiden yhtäaikainen huomioonottaminen luonnollisesti lisää ongelman monimutkaisuutta. Jos meillä on graafi, jonka haarautuvuus (branching) $b$, niin erotetussa menetelmässä jokaisella toimijalla on $O(b+1)$ mahdollista liikettä, eli siirtymät toisiin solmuihin ja paikallaan odottaminen. Yhdistetyssä menetelmässä on sen sijaan joka askeleella otettava myös huomioon $k$ toimijaa, jolloin mahdollisia liikkeitä on $O(b+1)^k$. Tämä hidastaa reittien laskemista~\cite{sharon2013}.
+Yksi graafien ominaisuuksia on \textit{haarautuvuus} (branching). Tällä tarkoitetaan keskimääräistä lukumäärään naapurisolmuja, joihin jostakin graafin solmusta voidaan liikkua. Jos meillä on graafi, jonka haarautuvuus on $b$, niin erotetussa menetelmässä jokaisella toimijalla on $O(b+1)$ mahdollista liikettä, eli siirtymät toisiin solmuihin ja paikallaan odottaminen. Yhdistetyssä menetelmässä on sen sijaan joka askeleella otettava myös huomioon $k$ toimijaa, jolloin mahdollisia liikkeitä on $O(b+1)^k$. Tämä hidastaa reittien laskemista~\cite{sharon2013}.
+
+Kuten edellä todettiin, useimmat rinnakkaisen reitinhaun ratkaisemiseen kehitetyt menetelmät ovat A*-pohjaisia. On myös kokonaan toisenlaisia lähestymistapoja, joilla pyritään pitämään alati kasvava laskentaresurssien tarve kurissa. 
 
 
 
-\subsection{A*-pohjaiset algoritmit}
-(jako A*/ei-A*? -- hierarkia vai ei? -- yhdistetty/erotettu?)
+\section{A*-pohjaiset rinnakkaisen reitinhaun algoritmit}
 
 kuvaukset:\newline
 Pattern Databases\newline
 Independence detection (ID)\newline
 Operator decomposition (OD)\newline
 Enhanced partial expansion (EPE)
-\subsubsection{Local Repair A* (LRA*)}
+\subsection{Local Repair A* (LRA*)}
 
-LRA* on itse asiassa yleistermi joukolle A*-pohjaisia algoritmeja, jotka jakavat saman toimintaperiaatteen: Jokainen toimija etsii reitin A*:lla ja seuraa sitä siihen asti kunnes siirtyminen seuraavaan solmuun saisi aikaan yhteentörmäyksen jonkun toisen toimijan kanssa, eli solmu johon pitäisi siirtyä on varattu. Tällöin tehdään uusi A*-haku ja jatketaan niin kauan kunnes on tultu maaliin.
+LRA* on yleistermi joukolle A*-pohjaisia algoritmeja, jotka jakavat saman toimintaperiaatteen: Jokainen toimija etsii reitin A*:lla ja seuraa sitä siihen asti kunnes siirtyminen seuraavaan solmuun saisi aikaan yhteentörmäyksen jonkun toisen toimijan kanssa, eli solmu johon pitäisi siirtyä on varattu. Tällöin tehdään uusi A*-haku ja jatketaan niin kauan kunnes on tultu maaliin.
 
 Syklit ovat tässä menetelmässä sekä mahdollisia että yleisiä, joten ongelmaa on pyritty ratkaisemaan lisäämällä niin kutsuttua kohinaa etäisyysheuristiikkaan joka kerta kun yhteentörmäys havaitaan~\cite{silver05}. Jos siis jatkuvasti kohdataan esteitä jossakin solmussa tai jollakin alueella, niin algoritmin laskeman kustannuksen sinne etenemisestä pitäisi ennenpitkää nousta niin suureksi, että toimija hakeutuu ongelma-alueen ympäri tai etsii kokonaan uuden reitin.
 
 Tällainen lähestymistapa johtaa ruuhkatilanteissa helposti oudolta näyttävään poukkoiluun, ja sen myötä prosessoriajan hävikkiin kun jokaisen yhteentörmäyksen yhteydessä reitti pitää laskea uudestaan.
 
 
-\subsubsection{Cooperative A* (CA*)}
+\subsection{Cooperative A* (CA*)}
 
 CA* pyrkii estämään yhteentörmäykset ennalta ottamalla aikaulottuvuuden huomioon reittejä suunniteltaessa. Jokaiselle toimijalle lasketaan reitti A*-algoritmilla ja suunnitellun reitin solut merkitään taulukkoon, esimerkiksi kolmiulotteiseen hajautustauluun, jossa kaksi ensimmäistä alkiota merkitsevät x- ja y-koordinaatteja, ja kolmas alkio aikaa milloin kyseinen solmu on tämän toimijan käytössä. Nyt seuraavien toimijoiden reittejä laskettaessa voidaan verrata suunniteltuja askeleita edellämainittuun taulukkoon ja odottamalla havaituissa törmäystilanteissa halutun reittisolmun vapautumista.
 
-Tämän algoritmin heikkoutena on kyvyttömyys ratkaista joitakin verrattaen yksinkertaisia tilanteita. Kuvassa 1 nähdään tilanne, missä toimijat S1 ja S2 pyrkivät vastaavasti maaleihin G1 ja G2. Intuitiivisesti nähdään, että jommankumman toimijan olisi mahdollista joko väistää sivulle tai nämä voisivat vaihtaa paikkoja kohdatessaan ja jatkaa sitten määränpäihinsä. Perusmuotoinen CA* ei kuitenkaan pysty tällaiseen ratkaisuun, sillä algoritmissa ei ole tällaista toiminnallisuutta.\newline
+Tämän algoritmin heikkoutena on kyvyttömyys ratkaista joitakin verrattaen yksinkertaisia tilanteita. Kuvassa \ref{meeting_conflict} nähdään tilanne, missä toimijat S1 ja S2 pyrkivät vastaavasti maaleihin G1 ja G2. Intuitiivisesti nähdään, että jommankumman toimijan olisi mahdollista joko väistää sivulle tai nämä voisivat vaihtaa paikkoja kohdatessaan ja jatkaa sitten määränpäihinsä. Perusmuotoinen CA* ei kuitenkaan pysty tällaiseen ratkaisuun, sillä algoritmissa ei ole tällaista toiminnallisuutta.\newline
 
 \begin{figure}
 \captionsetup{width=.65\linewidth}
 \includegraphics{meeting_conflict}
 \centering
 \caption{Esimerkki kohtaamis-ongelmasta, jossa toimijat S1 ja S2 voivat päästä maalisolmuihin G1 ja G2 vain jos jompikumpi väistää sivulle.}
+\label{meeting_conflict}
 \end{figure}
 
-\subsubsection{Hierarchical Cooperative A* (HCA*)}
+\subsection{Hierarchical Cooperative A* (HCA*)}
 
 R.C.Holte ja kumppanit esittelivät vuonna 1996 hierarkkisen A*-reitinetsintä\-algoritmin HA*~\cite{holte96} ratkaisemaan CA*-algoritmin ongelmia. Siinä varsinaisen topologian rinnalla käytetään toista, abstraktia, topologiaa auttamaan A*-agoritmia löytämään kohteeseen. Alkuperäisen topologian solmut ryhmitetään halutun abstraktioetäisyyden perusteella isommiksi abstraktiosolmuiksi, ja tätä jatketaan rekursiivisesti niin kauan, kunnes koko topologiasta on muodostettu yksittäinen abstraktiosolmu. Varsinaisen topologian rinnalla on nyt siis monitasoinen abstraktiohierarkia, jonka alimmalla tasolla on alkuperäinen topologia. Tätä monitasoista hierarkiaa käytetään heuristiikan apuna ja liikkumalla siinä tasolta toiselle sen mukaan miten tarkkaa jakoa esimerkiksi esteiden ympärillä tarvitaan, ja käyttämällä sen antamia etäisyyksiä reitinhakualgoritmin apuna. Etäisyydet kohteeseen lasketaan vain tarvittaessa~\cite{silver05}. [aukaisu]\newline
 
@@ -285,15 +288,15 @@ Ongelmana tämän algoritmin käytössä on reitinhaun lopettamisen määrittele
 \caption{Vasemmalla olevasta ruudukosta on muodostettu hierarkiamallin mukainen abstraktio.}
 \end{figure}
 
-\subsubsection{Windowed Hierarchical Cooperative A* (WHCA*)}
+\subsection{Windowed Hierarchical Cooperative A* (WHCA*)}
 
 WHCA* eroaa HCA*:sta siinä, että konkreettisen topologian tasolla reittejä ei lasketa maaliin asti, vaan reitinhaku on rajoitettu johonkin ennaltamääriteltyyn syvyyteen. Jotta toimijat saadaan hakeutumaan varmasti oikeaan suuntaan, lasketaan reitti abstraktiotasolla sen sijaan maaliin asti~\cite{silver05, botea13}. Kun reittiä on kuljettu johonkin ennaltamääriteltyyn raja-arvoon asti, kuten puolet aiemmin lasketusta reitistä, lasketaan uusi osittainen reitti ja niin edelleen. ”Windowed” tarkoittaa tässä siis aikaikkunaa tai kehystä, mihin asti konkreettinen reitti on nähtävillä ja mitä siirretään aina tarpeen mukaan. Resurssien käyttöä voidaan myös tasata antamalla toimijoille erikokoiset ikkunat, niin että taakka reittien laskemisesta jakautuu mahdollisimman tasaisesti ajan suhteen. Kuten HCA*, myös WHCA* hyödyntää RRA*:ta ja hyödyntää edellisen ikkunan aikana tehtyä hakua, mikä luonnollisesti tarkoittaa toimijakohtaista kirjanpitoa läpikäydyistä solmuista.
 
-\subsubsection{Near-optimal Hierarchical Pathfinding (HPA*)}
+\subsection{Hierarchical Pathfinding A* (HPA*)}
 
-\subsection{Muut rinnakkaisen reitinhaun algoritmit}
 
-\subsubsection{Conflict-Based Search (CBS)}
+
+\subsection{Conflict-Based Search (CBS)}
 
 Rinnakkaisen reitinhaun optimoimiseen pyrkivä CBS-algoritmi~\cite{sharon15} käyttää kaksitasoista lähestymistapaa, missä ensin käydään läpi ylemmän tason binääristä rajoituspuuta (constraint tree). Rajoituspuun jokaisessa solmussa on joukko rajoitteita (tieto siitä milloin joku topologian solmu on jonkun toimijan varaama), jotka kuuluvat jollekin yksittäiselle toimijalle. Toisekseen rajoituspuun solmuihin on myös talletettu joukko alemmalta tasolta saatuja reittejä, yksi jokaista toimijaa kohti, joiden tulee olla vapaita tiedetyistä yhteentörmäyksistä. Kolmantena niissä on myös yhteenlaskettu solmun reittikustannus, joka koostuu yksittäisen toimijan koko siihenastisen polun kustannuksesta. Rajoituspuu on järjestetty reittikustannuksen mukaan.
 
@@ -301,10 +304,14 @@ Alemmalla tasolla puolestaan voidaan käyttää tavanomaista yhden toimijan reit
 [selvennys, solmujen lapset]
 \newline
 
+Meta-agent Conflict-Based Search (MA-CBS)
+
 Improved Conflict-Based Search (ICBS)
 
+
+
 \begin{algorithm}
-\caption{High-level of ICBS}
+\caption{ICBS-algoritmin ylempi taso}
 \label{alg_icbs}
 \begin{algorithmic}[1]
 \State\textbf{Main(MAPF problem} instance\textbf{)}
@@ -330,6 +337,7 @@ Improved Conflict-Based Search (ICBS)
 		\State\indent\indent\textbf{foreach} \textit{agent $a_i$ in C} \textbf{do}
 			\State\indent\indent\indent $A\leftarrow$ Generate Child($N$, (\textit{$a_i$, s, t}))
 			\State\indent\indent\indent Insert $A$ into OPEN
+\newline
 \State\textbf{Generate Child(Node $N$, Constraint $C$ =} \textit{($a_i$, s, t)}\textbf{)}
 \State\indent$A.constraints\leftarrow$ $N.constraints$ + \textit{($a_i$, s, t)}
 \State\indent$A.solution\leftarrow N.solution$
@@ -340,11 +348,39 @@ Improved Conflict-Based Search (ICBS)
 \end{algorithmic}
 \end{algorithm}
 
-\subsubsection{Multi-agent Rapidly-exploring Random Tree (MA-RRT*)}
+
+\section{Muut rinnakkaisen reitinhaun algoritmit}
+
+\subsection{Multi-agent Rapidly-exploring Random Tree (MA-RRT*)}
 
 
 
-\subsubsection{Increasing Cost Tree Search}
+\subsection{Increasing Cost Tree Search}
+
+Guni Sharon ja kumppanit esittelivät vuoden 2012 artikkelissaan ~\cite{sharon2013} ICTS-menetelmän. Tässä on kyse kaksitasoisesta hierarkiasta, missä ylemmällä tasolla on puurakenne, jonka jokaisessa solmussa on yksiulotteinen taulukko kaikista mahdollsista reiteistä, missä 
+
+\begin{algorithm}
+\caption{Increasing Cost Tree}
+\label{alg_icts}
+\begin{algorithmic}[1]
+\State\textbf{Input:} \emph{(k, n)} MAPF
+\State Build the root of the ICT
+\State\textbf{foreach} \emph{ICT node in a breadth-first manner} \textbf{do}
+\State\indent\textbf{foreach} \emph{agent $a_i$} \textbf{do}
+\State\indent\indent Build the corresponding $MDD_i$
+\State\indent\textbf{[}\indent\textbf{//optional}
+\State\indent\textbf{foreach} \emph{pair (triple) of agents} \textbf{do}
+\State\indent\indent Perform node-pruning
+\State\indent\indent\textbf{if} \emph{node-pruning failed} \textbf{then}
+\State\indent\indent\indent\textbf{Break} \emph{//Conflict found. Next ICT node}
+\State\indent\textbf{]}
+\State\indent Search the $k$-agent MDD search space \emph{// low-level search}
+\State\indent\textbf{if} \emph{goal node was found} \textbf{then}
+\State\indent\indent\textbf{return} Solution
+\end{algorithmic}
+\end{algorithm}
+
+
 
 \section{Yhteenveto}
 

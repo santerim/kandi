@@ -2,6 +2,7 @@
 *.odt#
 *.doc
 *.gz
+*.odp#
 references-fi - Copy.bib
 algo*
-
+*Copy*.pdf

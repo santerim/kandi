@@ -153,7 +153,7 @@ Edellämainittujen esteiden ja muuttuvan toimintaympäristön lisäksi reitinhau
 
 %Tyypillisesti kenttä muodostetaan soluista (cell), joista toisinaan käytetään myös nimitystä laatta (tile). Solut ovat käytännössä monikulmioita, usein joko kolmioita, neliöitä tai kuusikulmioita. Edellämainitut muodot ovat ainoat monikulmiot, joita yhdistelemällä voidaan jokin alue kattaa yhtenäisesti ilman väliin jääviä aukkoja, mikäli kenttä halutaan mallintaa keskenään samankokoisilla soluilla. Mallinnus voidaan tehdä myös vaihtelevan kokoisilla monikulmioilla. Solut joissa kentällä voidaan liikkua muodostavat reitinhaussa käytettävän verkon (graph) solmut (vertex)~\cite{botea13, cui11}.
 
-Reitinhaun standardialgoritmi on jo pitkään ollut A* (eli A-star tai A-tähti), joka perustuu niin kutsuttuun Dijkstran algoritmiin, ja josta on kehitetty lukuisia eri variantteja eri toimintaympäristöjä ja tarpeita silmälläpitäen. Sen etuja on, että se pystyy varmuudella löytämään reitin kohteeseen, jos sellainen on ylipäätään olemassa. Niinikään se antaa parhaan mahdollisen reitin useista vaihtoehdoista, mikäli sen heuristiikkafunktio ei yliarvioi etäisyyttä kohteeseen~\cite{cui11, sharon15, botea04}. Tärkeisiin heuristisiin algoritmeihin kuuluvat myös iteratiivinen syvyys-A* (iterative-deepening-A*, IDA*) ja syvyyssuuntainen haarautuva rajattu (depth-first branch-and-bound, DFBnB)~\cite{felner2004additive}.
+Reitinhaun standardialgoritmi on jo pitkään ollut Dijkstran algoritmiin perustuva A* (eli A-star tai A-tähti), josta on kehitetty lukuisia eri variantteja eri toimintaympäristöjä ja tarpeita silmälläpitäen. Sen etuja on, että se pystyy varmuudella löytämään reitin kohteeseen, jos sellainen on ylipäätään olemassa. Niinikään se antaa parhaan mahdollisen reitin useista vaihtoehdoista, mikäli sen heuristiikkafunktio ei yliarvioi etäisyyttä kohteeseen~\cite{cui11, sharon15, botea04}. Tärkeisiin heuristisiin algoritmeihin kuuluvat myös iteratiivinen syvyys-A* (iterative-deepening-A*, IDA*) ja syvyyssuuntainen-haarautuva-rajattu (depth-first branch-and-bound, DFBnB)~\cite{felner2004additive}. Resurssitarpeiden kurissapitämiseksi on kehitetty myös erilaisia hierarkiamalleja soveltavia algoritmeja.
 
 \subsection{Dijkstran algoritmi}
 
@@ -227,7 +227,18 @@ Kuvassa \ref{astar} voidaan nähdä ero A*-algoritmin toimintaperiaatteessa. Nyt
 \end{algorithmic}
 \end{algorithm}
 
-\subsection{Puurakenteet}
+\subsection{Hierarchical Pathfinding A* (HPA*)}
+
+Tämä algoritmi poikkeaa A*:stä siinä, että reitinhaun apuna käytetään yhtä tai useampaa abstraktiotasoa. HPA*:n kehittäjät A.Botea ja M.Müller käyttävät autovertausta havainnollistamaan algoritmin toimintaa: Kaupungista toiseen ajava autoilija ei ole kiinnostunut kaikista mahdollisista yksityiskohdista matkansa varrella, vaan häntä lähinnä kiinnostaa reitti lähtöpisteestä oikeaan suuntaan vievälle valtatielle, ja kohdekaupunkiin saavuttaessa reitti valtatieltä varsinaiseen määränpäähän. Itse valtatien ajamisen voidaan tässä esimerkissä siis nähdä olevan jokseenkin triviaalia toimintaa, joka ei vaadi sen kummempia toimenpiteitä. Tarkoitus on siis pyrkiä reitinhaun tehokkuuteen eliminoimalla sellaista laskentaa, joka liittyy esteettömien alueiden ylittämiseen~\cite{botea04}.
+Kuvassa ~ref{hpa} nähdään abstraktion vaiheet testiruudukossa. Ruudut $S$ ja $G$ merkitsevät lähtö- ja maaliruutuja, ja mustaksi värjätyt ruudut esteitä. Kohdassa b on alkuperäiseen ruudukkoon merkitty kapeilla mustilla viivoilla alueen jako klustereihin, ja alimpana nähdään vasemman yläneljänneksen klusterit harmaalla merkittyine siirtymineen. Tässä esimerkissä on käytetty raja-arvona kuutta ruutua, jolloin alle raja-arvon levyiset avoimet ruutualueet kahden klusterin välillä saavat yhden siirtymän ja muualla siirtymiksi merkitään avoimien ruutualueiden reunat.
+
+\begin{figure}
+\captionsetup{width=.9\linewidth}
+\includegraphics[scale=1]{hpa}
+\centering
+\caption{Ylärivillä 40x40 -ruudukon jakaminen 16:een klusteriin HPA*-algoritmin esiprosessoinnissa, alla vasemman yläneljänneksen klustereiden siirtymät~\cite{botea04}.}
+\label{hpa}
+\end{figure}
 
 \section{Rinnakkainen reitinhaku}
 
@@ -292,7 +303,7 @@ Ongelmana tämän algoritmin käytössä on reitinhaun lopettamisen määrittele
 
 WHCA* eroaa HCA*:sta siinä, että konkreettisen topologian tasolla reittejä ei lasketa maaliin asti, vaan reitinhaku on rajoitettu johonkin ennaltamääriteltyyn syvyyteen. Jotta toimijat saadaan hakeutumaan varmasti oikeaan suuntaan, lasketaan reitti abstraktiotasolla sen sijaan maaliin asti~\cite{silver05, botea13}. Kun reittiä on kuljettu johonkin ennaltamääriteltyyn raja-arvoon asti, kuten puolet aiemmin lasketusta reitistä, lasketaan uusi osittainen reitti ja niin edelleen. ”Windowed” tarkoittaa tässä siis aikaikkunaa tai kehystä, mihin asti konkreettinen reitti on nähtävillä ja mitä siirretään aina tarpeen mukaan. Resurssien käyttöä voidaan myös tasata antamalla toimijoille erikokoiset ikkunat, niin että taakka reittien laskemisesta jakautuu mahdollisimman tasaisesti ajan suhteen. Kuten HCA*, myös WHCA* hyödyntää RRA*:ta ja hyödyntää edellisen ikkunan aikana tehtyä hakua, mikä luonnollisesti tarkoittaa toimijakohtaista kirjanpitoa läpikäydyistä solmuista.
 
-\subsection{Hierarchical Pathfinding A* (HPA*)}
+
 
 
 
@@ -357,7 +368,7 @@ Improved Conflict-Based Search (ICBS)
 
 \subsection{Increasing Cost Tree Search}
 
-Guni Sharon ja kumppanit esittelivät vuoden 2012 artikkelissaan ~\cite{sharon2013} ICTS-menetelmän. Tässä on kyse kaksitasoisesta hierarkiasta, missä ylemmällä tasolla on puurakenne, jonka jokaisessa solmussa on yksiulotteinen taulukko kaikista mahdollsista reiteistä, missä 
+Vuonna 2012 esitelty ICTS-algoritmi toteuttaa kaksitasoista hierarkiaa ~\cite{sharon2013}. Ylemmällä abstraktiotasolla on puurakenne, jonka jokaisessa solmussa on yksiulotteinen taulukko kaikista mahdollsista reiteistä, missä 
 
 \begin{algorithm}
 \caption{Increasing Cost Tree}

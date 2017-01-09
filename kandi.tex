@@ -178,7 +178,7 @@ Kaikille algoritmin käsittelemille solmuille lasketaan arvo kaavalla \begin{equ
 
 Kuvassa \ref{dijkstrab} on havainnollistettu Dijkstran algoritmin löytämä reitti yksinkertaisessa ruudukossa. Liikkuminen on rajoitettu niin sanottuun Manhattan -tyyliin, missä sallitut kulkusuunnat ovat neljä pääilmansuuntaa. Esteenä toimivat solmut on väritetty tummanharmaalla ja algoritmin läpikäymät solmut turkoosilla. Jälkimmäisen värisävyt kuvaavat laskennallista etäisyyttä vaaleanpunaiseen lähtösolmuun. Kuten kuvasta nähdään, Dijkstra käy läpi varsin suuren osan kentän solmuista, mutta löytää suorimman reitin violetilla merkittyyn kohteeseen.
 
-Kuvassa \ref{astar} voidaan nähdä ero A*-algoritmin toimintaperiaatteessa. Nyt tutkittuja solmuja on paljon vähemmän heuristiikan ohjatessa läpikäynnin suuntaa. Vaikka reitit hieman poikkeavatkin toisistaan, ne ovat annettujen ennakkoehtojen valossa yhtä pitkiä.
+Kuvassa \ref{astar} voidaan nähdä miten A*-algoritmin toimintaperiaate poikkeaa Dijkstran algoritmista: Tutkittuja solmuja on paljon vähemmän heuristiikan ohjatessa läpikäynnin suuntaa. Vaikka reitit hieman poikkeavatkin toisistaan, ne ovat annettujen ennakkoehtojen valossa yhtä pitkiä.
 
 \begin{figure}
 \captionsetup{width=\linewidth}
@@ -244,13 +244,13 @@ Algoritmin toimintaa voidaan tietyissä tilanteissa parantaa lisäämällä abst
 
 \section{Rinnakkainen reitinhaku}
 
-Rinnakkaisessa reitinhaussa on yleensä useita, joskus jopa satoja tai tuhansia, eri toimijoita. Kaikille näille on löydettävä reitit kohteisiinsa. Tällainen monen toimijan rinnakkainen reitinhaku (multi-agent pathfinding, MAPF) tuo yksittäisen toimijan reitinhakuun verrattuna uusia ongelmia. On ratkaistava muun muassa sallitaanko reittien risteäminen, voiko kaksi tai useampi toimijaa olla samaan aikaan samassa paikassa, tuleeko liikkumista porrastaa odottamalla että reitti edessä vapautuu ja tuleeko toimijan väistää ollessaan toisen tiellä~\cite{erdem13}. Näiden ongelmien ratkaisemiseen kehitetyistä algoritmeja useimmat hyödyntävät A*-algoritmia jollakin tapaa~\cite{sharon15}.
+Rinnakkaisessa reitinhaussa on yleensä useita, joskus jopa satoja tai tuhansia, eri toimijoita. Tällainen monen toimijan rinnakkainen reitinhaku (multi-agent pathfinding, MAPF) tuo yksittäisen toimijan reitinhakuun verrattuna uusia ongelmia. On muun muassa ratkaistava sallitaanko reittien risteäminen, voiko kaksi tai useampi toimijaa olla samaan aikaan samassa paikassa, tuleeko liikkumista porrastaa odottamalla että reitti edessä vapautuu ja tuleeko toimijan väistää ollessaan toisen toimijan tiellä~\cite{erdem13}. Näiden ongelmien ratkaisemiseen kehitetyistä algoritmeja useimmat hyödyntävät A*-algoritmia jollakin tapaa~\cite{sharon15}.
 
 Mitä enemmän toimijoita tutkittavalla alueella on, sitä oleellisemmaksi muodostuu yhteentörmäyksien ja tahattoman reittien sulkemisen välttäminen. Yksi oleellinen ero lähestymistavoissa on käsitelläänkö toimijoita yhdistettynä (coupled) toimijana, vai toisistaan erotettuina (decoupled) toimijoina. Erotetussa menetelmässä reitit lasketaan jokaiselle toimijalle erikseen ja mahdolliset yhteentörmäykset ratkaistaan valitulla menettelyllä sikäli kuin niitä tapahtuu. Tämä menetelmä on tyypillinen tilanteille, joissa toimijoita on verrattaen paljon~\cite{sharon2013}. Yhdistetyssä menetelmässä kaikkia toimijoita käsitellään sen sijaan kokonaisuutena. Tämä voidaan toteuttaa esimerkiksi varaamalla graafin solmuja toimijoiden käyttöön siksi aikaa kun näiden odotetaan oman reitinhakunsa perusteella niissä olevan. Lukuisten toimijoiden yhtäaikainen huomioonottaminen luonnollisesti lisää ongelman monimutkaisuutta.
 
 Yksi graafien ominaisuuksia on \textit{haarautuvuus} (branching). Tällä tarkoitetaan keskimääräistä lukumäärään naapurisolmuja, joihin jostakin graafin solmusta voidaan liikkua. Jos meillä on graafi, jonka haarautuvuus on $b$, niin erotetussa menetelmässä jokaisella toimijalla on $O(b+1)$ mahdollista liikettä, eli siirtymät toisiin solmuihin ja paikallaan odottaminen. Yhdistetyssä menetelmässä on sen sijaan joka askeleella otettava myös huomioon $k$ toimijaa, jolloin mahdollisia liikkeitä on $O(b+1)^k$. Tämä hidastaa reittien laskemista~\cite{sharon2013}.
 
-Kuten edellä todettiin, useimmat rinnakkaisen reitinhaun ratkaisemiseen kehitetyt menetelmät ovat A*-pohjaisia. On myös kokonaan toisenlaisia lähestymistapoja, joilla pyritään pitämään alati kasvava laskentaresurssien tarve kurissa. 
+Kuten edellä todettiin, useimmat rinnakkaisen reitinhaun ratkaisemiseen kehitetyt menetelmät ovat A*-pohjaisia. A*-agoritmi vaatii kuitenkin verrattaen paljon resursseja käyttöönsä, mikäli kyse on laajemmasta reitinhakuongelmasta. Siksi onkin kehitetty useita erilaisia lähestymistapoja, joilla pyritään pitämään läpikäytävien solmujen määrä, ja siten laskentaresurssien tarve, mahdollisimman pienenä.
 
 
 
@@ -260,7 +260,7 @@ kuvaukset:\newline
 Pattern Databases\newline
 Independence detection (ID)\newline
 Operator decomposition (OD)\newline
-Enhanced partial expansion (EPE)
+Enhanced partial expansion A* (EPEA*)
 \subsection{Local Repair A* (LRA*)}
 
 LRA* on yleistermi joukolle A*-pohjaisia algoritmeja, jotka jakavat saman toimintaperiaatteen: Jokainen toimija etsii reitin A*:lla ja seuraa sitä siihen asti kunnes siirtyminen seuraavaan solmuun saisi aikaan yhteentörmäyksen jonkun toisen toimijan kanssa, eli solmu johon pitäisi siirtyä on varattu. Tällöin tehdään uusi A*-haku ja jatketaan niin kauan kunnes on tultu maaliin.
@@ -299,11 +299,12 @@ Ongelmana tämän algoritmin käytössä on reitinhaun lopettamisen määrittele
 \includegraphics[scale=0.75]{grid_hierarchy}
 \centering
 \caption{Vasemmalla olevasta ruudukosta on muodostettu hierarkiamallin mukainen abstraktio.}
+\label{grid_hierarchy}
 \end{figure}
 
 \subsection{Windowed Hierarchical Cooperative A* (WHCA*)}
 
-WHCA* eroaa HCA*:sta siinä, että konkreettisen topologian tasolla reittejä ei lasketa maaliin asti, vaan reitinhaku on rajoitettu johonkin ennaltamääriteltyyn syvyyteen. Jotta toimijat saadaan hakeutumaan varmasti oikeaan suuntaan, lasketaan reitti abstraktiotasolla sen sijaan maaliin asti~\cite{silver05, botea13}. Kun reittiä on kuljettu johonkin ennaltamääriteltyyn raja-arvoon asti, kuten puolet aiemmin lasketusta reitistä, lasketaan uusi osittainen reitti ja niin edelleen. ”Windowed” tarkoittaa tässä siis aikaikkunaa tai kehystä, mihin asti konkreettinen reitti on nähtävillä ja mitä siirretään aina tarpeen mukaan. Resurssien käyttöä voidaan myös tasata antamalla toimijoille erikokoiset ikkunat, niin että taakka reittien laskemisesta jakautuu mahdollisimman tasaisesti ajan suhteen. Kuten HCA*, myös WHCA* hyödyntää RRA*:ta ja hyödyntää edellisen ikkunan aikana tehtyä hakua, mikä luonnollisesti tarkoittaa toimijakohtaista kirjanpitoa läpikäydyistä solmuista.
+WHCA* eroaa HCA*:sta siinä, että abstraktiotasolla reitti lasketaan maaliin ast, mutta konkreettisen topologian tasolla reitinhaku on rajoitettu johonkin ennaltamääriteltyyn syvyyteen~\cite{silver05, botea13}. Kun reittiä on kuljettu johonkin ennaltamääriteltyyn raja-arvoon asti, esimerkiksi puolet aiemmin lasketusta reitistä, lasketaan uusi osittainen reitti ja niin edelleen. ”Windowed” tarkoittaa tässä siis aikaikkunaa tai kehystä, mihin asti konkreettinen reitti on nähtävillä ja mitä siirretään aina tarpeen mukaan. Resurssien käyttöä voidaan myös tasata antamalla toimijoille erikokoiset ikkunat, jolloin taakka reittien laskemisesta saadaan jakautumaan tasaisemmin. Kuten HCA*, myös WHCA* hyödyntää käänteistä jatkettavaa A*-hakua eli RRA*:ta. Näin voidaan hyödyntää edellisen ikkunan aikana tehtyä hakua, mikä toisaalta tarkoittaa toimijakohtaista kirjanpitoa läpikäydyistä solmuista.
 
 
 
@@ -313,9 +314,10 @@ WHCA* eroaa HCA*:sta siinä, että konkreettisen topologian tasolla reittejä ei
 
 Rinnakkaisen reitinhaun optimoimiseen pyrkivä CBS-algoritmi~\cite{sharon15} käyttää kaksitasoista lähestymistapaa, missä ensin käydään läpi ylemmän tason binääristä rajoituspuuta (constraint tree). Rajoituspuun jokaisessa solmussa on joukko rajoitteita (tieto siitä milloin joku topologian solmu on jonkun toimijan varaama), jotka kuuluvat jollekin yksittäiselle toimijalle. Toisekseen rajoituspuun solmuihin on myös talletettu joukko alemmalta tasolta saatuja reittejä, yksi jokaista toimijaa kohti, joiden tulee olla vapaita tiedetyistä yhteentörmäyksistä. Kolmantena niissä on myös yhteenlaskettu solmun reittikustannus, joka koostuu yksittäisen toimijan koko siihenastisen polun kustannuksesta. Rajoituspuu on järjestetty reittikustannuksen mukaan.
 
-Alemmalla tasolla puolestaan voidaan käyttää tavanomaista yhden toimijan reitinhakualgoritmia kuten A* käyttäen samalla hyväksi ylemmältä tasolta saatua tietoa siitä, milloin ja missä on odotettavissa yhteentörmäys jonkun toisen toimijan kanssa. Mikäli kaikesta huolimatta alemmalla tasolla havaitaan yhteentörmäyksiä, päivitetään ylemmän tason rajoituspuuta vastaavasti ja laajennetaan rajoituspuuta lisäämällä siihen solmuja uusin rajoittein. 
-[selvennys, solmujen lapset]
+Alemmalla tasolla puolestaan voidaan käyttää tavanomaista yhden toimijan reitinhakualgoritmia kuten A* hyödyntäen samalla ylemmältä tasolta saatua tietoa siitä, missä ja milloin on odotettavissa yhteentörmäys jonkun toisen toimijan kanssa. Mikäli kaikesta huolimatta alemmalla tasolla havaitaan yhteentörmäyksiä, päivitetään ylemmän tason rajoituspuuta vastaavasti laajentamalla rajoituspuuta lisäämällä siihen solmuja. Tämän jälkeen tehdään uusi alemman tason haku ja toistetaan edellinen vaihe tarvittaessa.
 \newline
+
+CBS-algoritmin toiminta on tehotonta esimerkiksi tilanteessa 
 
 Meta-agent Conflict-Based Search (MA-CBS)
 
@@ -370,7 +372,22 @@ Improved Conflict-Based Search (ICBS)
 
 \subsection{Increasing Cost Tree Search}
 
-Vuonna 2012 esitelty ICTS-algoritmi toteuttaa kaksitasoista hierarkiaa ~\cite{sharon2013}. Ylemmällä abstraktiotasolla on puurakenne, jonka jokaisessa solmussa on yksiulotteinen taulukko kaikista mahdollsista reiteistä, missä 
+Guni Sharonin ja kumppaneiden vuonna 2012 julkaisema ICTS-algoritmi on kaksitasoista hierarkiaa hyödyntävä algoritmi~\cite{sharon2013}. Hierarkian ylemmällä tasolla käydään läpi puuta nimeltä \textit{increasing cost tree}. Se muodostuu solmuista, joista jokaisessa oleva taulukko edustaa kaikkia niitä mahdollisia reittiratkaisuja, missä toimijoiden reittien hinta on täsmälleen taulukkoon niitä vastaaville paikoille generoitu luku. Toisin sanoen kyseessä on taulukko $[C_1,...,C_k]$, jossa toimijan $a_i$ reittikustannus löytyy taulukon kohdasta $C_i$.
+
+Kuvassa \ref{ict} on havainnollistettu tällaisen puun rakennetta kolmen toimijan tapauksessa. Jokaisessa puun solmussa on kolme lukua, jotka siis edustavat näiden kolmen toimijan etäisyyttä maaliin solmussa pidettyjen reittiratkaisujen osalta. Juurisolmun lukemat ovat toimijoiden suorimmat mahdolliset etäisyydet maaliin, eli tilanne missä maaleihin voitaisiin kulkea välittämättä lainkaan muista toimijoista. Tässä esimerkissä jokaisen kolmesta toimijasta laskennallinen etäisyys maaliin on 10. Juurisolmulle ja jokaiselle solmulle sittemmin lisätään toimijoiden määrää vastaava määrä lapsisolmuja. Näihin lapsisolmuihin puolestaan lisätään siinä oleville toimijoille jokaiselle vuorollaan jokin lukuarvo (tässä 1) edustamaan pidempää reittiä. Toisen rivin ensimmäisessä solmussa on siis ensimmäinen toimija saanut arvon 11, toisessa solmussa keskimmäinen ja kolmannessa viimeinen.
+
+ICT-puuta läpikäytäessä jokaisen solmun kohdalla kutsutaan alemman tason rutiinia tarkistamaan josko solmun määrittämä reittiyhdistelmä on löytynyt. Eli aluksi kokeillaan onko juurisolmun etäisyyksillä löydettävissä reitit kaikille toimijoille ja jos ei, siirrytään puussa alaspäin. Mitä alemmas puussa siis mennään, sitä suurempi on solmuissa olevien reittien hintojen summa.  Puuta käydään läpi leveyssuuntaisella haulla juuresta lähtien, joten ensimmäinen löydetty toteutettavissa oleva reittiratkaisu on myös väistämättä halvin.
+
+Jokaista ICT-solmua tutkittaessa suoritetaan siis reittivertailu alemmalla hierarkiatasolla. Tämä tapahtuu käymällä läpi kunkin toimijan kaikki sellaiset reitit, joiden enimmäishinta on kyseiselle toimijalle ICT-solmussa asetettu arvo, ja vertailemalla näitä keskenään kunnes tuloksena on joukko ristiriidattomia reittejä. Koska eri reittejä voi olla hyvinkin suuri määrä, niiden käsittelemiseen on kehitetty oma algoritminsa, \textit{multi-value decision diagram} (MDD). Varsinaisten reittien muodostamiseen voidaan käyttää mitä tahansa sopivaksi katsottua yhden toimijan reitinhakualgoritmia.
+
+\begin{figure}
+\captionsetup{width=.65\linewidth}
+\includegraphics[scale=1]{ict}
+\centering
+\caption{Increasing Cost Tree kolmella toimijalla~\cite{sharon15}.}
+\label{ict}
+\end{figure}
+
 
 \begin{algorithm}
 \caption{Increasing Cost Tree}

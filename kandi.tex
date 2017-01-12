@@ -178,25 +178,19 @@ Dijkstran algoritmiin perustuva A* toteuttaa niin sanottua paras ensin -tyyliä,
 
 Kaikille algoritmin käsittelemille solmuille lasketaan arvo kaavalla \begin{equation}\label{astarkaava}{f(n) = g(n)+h(n)}\end{equation} missä $g(n)$ on lyhin tunnettu reitti lähtösolmusta solmuun $n$ ja $h(n)$ on heuristinen arvio etäisyydestä maalisolmuun~\cite{sharon15, stout96}. Näin jokaisen läpikäydyn solmun kohdalla tiedetään sille lasketusta arvosta kuinka suoralla reitillä kohteeseen ollaan. Solmuille voidaan myös asettaa edellämainittuun kaavaan lisättävä arvo tekemään siihen siirtymisestä hintavampaa ja näin mallintaa hitaampaa kulkuyhteyttä kahden paikan välillä.
 
-Kuvassa \ref{dijkstrab} on havainnollistettu Dijkstran algoritmin löytämä reitti yksinkertaisessa ruudukossa. Liikkuminen on rajoitettu niin sanottuun Manhattan -tyyliin, missä sallitut kulkusuunnat ovat neljä pääilmansuuntaa. Esteenä toimivat solmut on väritetty tummanharmaalla ja algoritmin läpikäymät solmut turkoosilla. Jälkimmäisen värisävyt kuvaavat laskennallista etäisyyttä vaaleanpunaiseen lähtösolmuun. Kuten kuvasta nähdään, Dijkstra käy läpi varsin suuren osan kentän solmuista, mutta löytää suorimman reitin violetilla merkittyyn kohteeseen.
+Kuvassa \ref{dijkstrab} on ylempänä havainnollistettu Dijkstran algoritmin löytämä reitti yksinkertaisessa ruudukossa. Liikkuminen on rajoitettu niin sanottuun Manhattan -tyyliin, missä sallitut kulkusuunnat ovat neljä pääilmansuuntaa. Esteenä toimivat solmut on väritetty tummanharmaalla ja algoritmin läpikäymät solmut turkoosilla. Jälkimmäisen värisävyt kuvaavat laskennallista etäisyyttä vaaleanpunaiseen lähtösolmuun. Kuten kuvasta nähdään, Dijkstra käy läpi varsin suuren osan kentän solmuista, mutta löytää suorimman reitin violetilla merkittyyn kohteeseen.
 
-Kuvassa \ref{astar} voidaan nähdä miten A*-algoritmin toimintaperiaate poikkeaa Dijkstran algoritmista: Tutkittuja solmuja on paljon vähemmän heuristiikan ohjatessa läpikäynnin suuntaa. Vaikka reitit hieman poikkeavatkin toisistaan, ne ovat annettujen ennakkoehtojen valossa yhtä pitkiä.
+Saman kuvan alemmalla puoliskolla nähdään miten A*-algoritmin toimintaperiaate poikkeaa Dijkstran algoritmista: Tutkittuja solmuja on paljon vähemmän heuristiikan ohjatessa läpikäynnin suuntaa. Vaikka reitit hieman poikkeavatkin toisistaan, ne ovat annettujen ennakkoehtojen valossa yhtä pitkiä.
 
 \begin{figure}
 \captionsetup{width=\linewidth}
-\includegraphics[width=\textwidth, keepaspectratio]{dijkstrab}
+\includegraphics[width=\textwidth, keepaspectratio]{dijkstra_astar}
 \centering
-\caption{Esteen kiertäminen Dijkstran algoritmilla~\cite{astar_kuva}}
+\caption{Ylempänä esteen kiertäminen Dijkstran algoritmilla ja alla sama A*-algoritmilla~\cite{astar_kuva}}
 \label{dijkstrab}
 \end{figure}
 
-\begin{figure}
-\captionsetup{width=\linewidth}
-\includegraphics[width=\textwidth, keepaspectratio]{astar}
-\centering
-\caption{Esteen kiertäminen A*-algoritmilla~\cite{astar_kuva}}
-\label{astar}
-\end{figure}
+
 
 \begin{algorithm}
 \caption{A*-algoritmin pseudokoodi}

@@ -84,11 +84,11 @@
 \author{Santeri Martikainen}
 \date{\today}
 \level{Kandidaatintutkielma}
-\abstract{Tiivistelmä.}
+\abstract{}
 
 % The following can be used to specify keywords and classification of the paper:
 
-\keywords{avainsana 1, avainsana 2, avainsana 3}
+\keywords{reitinhaku, multi-agent, pathfinding, MAPF}
 
 % classification according to ACM Computing Classification System (http://www.acm.org/about/class/)
 % This is probably mostly relevant for computer scientists
@@ -133,9 +133,11 @@
 
 \section{Johdanto}
 
-Tässä tutkielmassa keskitytään tarkastelemaan monen yhtaikaisen toimijan (agent) reitinhakuongelmaa ja sen ratkaisemiseksi kehitettyjä algoritmeja. Reitinhaussa on pohjimmiltaan kyse mahdollisimman suoran ja nopean polun löytämisestä kahden pisteen välillä jossakin topologiassa. Topologia, eli kenttä tai alue, voi olla reaalimaailmassa, kuten tieverkosto autonavigaattorin reitinhaussa tai vaikkapa kokoonpanolinjan robotin käytettävissä oleva liikkumatila. Topologia voi myös olla täysin virtuaalinen, kuten tietokonepelien pelimaailmat. Muita käyttökohteita ovat muun muassa liikenteen ja väkijoukkojen mallintaminen, poliisin ja pelastustoimen tehtävät, sekä tietoliikenneverkot. Käyttökohteesta riippumatta topologia, jossa reittejä etsitään, on mallinnettava tietorakenteiksi sen läpikäyntiä varten.
+Reitinhaussa on pohjimmiltaan kyse mahdollisimman suoran ja nopean polun löytämisestä kahden pisteen välillä jossakin topologiassa. Topologia, eli kenttä tai alue, voi olla reaalimaailmassa, kuten tieverkosto autonavigaattorin reitinhaussa tai vaikkapa kokoonpanolinjan robotin käytettävissä oleva liikkumatila. Topologia voi myös olla täysin virtuaalinen, kuten tietokonepelien pelimaailmat. Muita käyttökohteita ovat muun muassa liikenteen ja väkijoukkojen mallintaminen, poliisin ja pelastustoimen tehtävät, sekä tietoliikenneverkot. Käyttökohteesta riippumatta topologia, jossa reittejä etsitään, on mallinnettava tietorakenteiksi sen läpikäyntiä varten.
 
-Oli reitinhaun sovelluskohde mikä hyvänsä, on selvää että mikäli varsinaista reitinhakua tarvitaan, ei reitin löytäminen ainakaan jokaisella suorituskerralla voi olla täysin suoraviivaista ja triviaalia. Jos se olisi, asia voitaisiin ratkaista yksinkertaisesti laskemalla lyhin etäisyys mitä pitkin liikkua suoraan kohteeseen ja toimia sen mukaan. Kysymys on siis reittien löytämisestä tietyin reunaehdoin. Jos ajattelemme esimerkiksi navigaattoria käyttävää autoilijaa, tämä haluaa kaikella todennäköisyydellä ajaa määränpäähänsä lyhintä reittiä teitä pitkin oikaisematta yhdenkään metsän tai järven lävitse.
+Oli reitinhaun sovelluskohde mikä hyvänsä, mikäli varsinaista reitinhakua tarvitaan ei reitin löytäminen jokaisella suorituskerralla voi olla täysin suoraviivaista ja triviaalia. Mikäli näin olisi, asia voitaisiin ratkaista yksinkertaisesti laskemalla lyhin etäisyys mitä pitkin liikkua suoraan kohteeseen ja toimia sen mukaan. Kysymys on siis reittien löytämisestä tietyin reunaehdoin. Esimerkiksi navigaattoria käyttävää autoilija haluaa kaikella todennäköisyydellä ajaa määränpäähänsä lyhintä reittiä teitä pitkin oikaisematta yhdenkään metsän tai järven lävitse.
+
+Tässä tutkielmassa tarkastellaan ensin reitinhakua itsessään ja sen ratkaisemista yhden toimijan (agent) reitinhakualgoritmeilla. Jäljempänä käsittelemme monen yhtaikaisen toimijan reitinhakua (multi-agent pathfinding, MAPF) ja siihen kehitettyjä algoritmeja. 
 
 % Write some science here.
 
@@ -145,7 +147,7 @@ Oli reitinhaun sovelluskohde mikä hyvänsä, on selvää että mikäli varsinai
 
 Reitinhaun toteuttaminen jakaantuu kahteen vaiheeseen: Toimintaympäristöstä tai topologiasta muodostetaan ensin yksinkertaistettu malli, minkä jälkeen sitä käydään läpi jollakin algoritmilla halutun reitin löytämiseksi. Algoritmia ohjaa heuristiikkafunktio jolla arvioidaan etäisyyttä kohteeseen ja voidaan siten vertailla eri reittivaihtoehtojen keskinäistä paremmuutta. Jonkin reitin paremmuuteen muihin nähden voi vaikuttaa pituuden lisäksi myös sen nopeus.
 
-Mallinnettavasta ympäristöstä riippumatta kyseessä on käytännössä verkko \texttt{G=(V,E)}, missä \texttt{V} (vertex) on joukko solmuja ja \texttt{E} (edge) joukko solmuja yhdistäviä kaaria. Liikkuminen voi esimerkiksi tapahtua solmusta toiseen, tai sitten solmut voivat edustaa kiintopisteitä joiden läheisyydessä voidaan liikkua ilman erillistä reitinhakua. Solmut voivat myös toimia esteinä, jolloin niihin liikkuminen on estetty. Tämä voi myös olla vain solmun väliaikainen tila esimerkiksi jonkun toisen toimijan ollessa liikkumisen tiellä. Verkko voi siis olla dynaaminen, eli sen rakenne saattaa muuttua kesken reittien läpikäymisen, mikä asettaa omat haasteensa reitinhaulle~\cite{botea13, algfoor15}.
+Topologiasta riippumatta mallinnuksen tuloksena on useimmiten verkko \texttt{G=(V,E)}, missä \texttt{V} (vertex) on joukko solmuja ja \texttt{E} (edge) joukko solmuja yhdistäviä kaaria. Liikkuminen voi esimerkiksi tapahtua solmusta toiseen, tai sitten solmut voivat edustaa kiintopisteitä joiden läheisyydessä voidaan liikkua ilman erillistä reitinhakua. Solmut voivat myös toimia esteinä, jolloin niihin liikkuminen on estetty. Tämä voi myös olla vain solmun väliaikainen tila esimerkiksi jonkun toisen toimijan ollessa liikkumisen tiellä. Verkko voi siis olla dynaaminen, eli sen rakenne saattaa muuttua kesken reittien läpikäymisen, mikä asettaa omat haasteensa reitinhaulle~\cite{botea13, algfoor15}. Topologia voidaan toisinaan mallintaa myös puurakenteena~\cite{khorshid2011polynomial}.
 
 Edellämainittujen esteiden ja muuttuvan toimintaympäristön lisäksi reitinhaun keskeisiä ongelmia on resurssien käyttö. Mitä laajemmassa topologiassa reitinhaku suoritetaan, sitä enemmän laskentaresursseja (muistia, prosessoriaikaa) siihen menee. Joissakin tilanteissa voidaan tyytyä osittaiseen reitinhakuun, eli reittiä ei lasketa loppuun asti, vaan ainoastaan johonkin tiettyyn ennaltamäärättyyn pisteeseen ja uusi reitinhaku tehdään kun jokin välietappi on saavutettu. Tässä on luonnollisesti varmistuttava siitä, että valittuun suuntaan lähteminen todella mahdollistaa perille pääsemisen. Toinen lähestymistapa on kaikkien mahdollisten reittien laskeminen ennakkoon, jolloin haluttu reitti kahden sijainnin välillä yksinkertaisesti haetaan taulukosta tarvittaessa. Tämän menetelmän heikkoutena on, että kyseisestä taulukosta saattaa tulla niin suuri, että varsinainen reitinhaku on nopeampi toteuttaa. Niinikään se vaatii käytännössä mainitun taulukon pitämistä jatkuvasti muistissa.
 
@@ -153,7 +155,7 @@ Edellämainittujen esteiden ja muuttuvan toimintaympäristön lisäksi reitinhau
 
 %Tyypillisesti kenttä muodostetaan soluista (cell), joista toisinaan käytetään myös nimitystä laatta (tile). Solut ovat käytännössä monikulmioita, usein joko kolmioita, neliöitä tai kuusikulmioita. Edellämainitut muodot ovat ainoat monikulmiot, joita yhdistelemällä voidaan jokin alue kattaa yhtenäisesti ilman väliin jääviä aukkoja, mikäli kenttä halutaan mallintaa keskenään samankokoisilla soluilla. Mallinnus voidaan tehdä myös vaihtelevan kokoisilla monikulmioilla. Solut joissa kentällä voidaan liikkua muodostavat reitinhaussa käytettävän verkon (graph) solmut (vertex)~\cite{botea13, cui11}.
 
-Reitinhaun standardialgoritmi on jo pitkään ollut Dijkstran algoritmiin perustuva A* (eli A-star tai A-tähti), josta on kehitetty lukuisia eri variantteja eri toimintaympäristöjä ja tarpeita silmälläpitäen. Sen etuja on, että se pystyy varmuudella löytämään reitin kohteeseen, jos sellainen on ylipäätään olemassa. Niinikään se antaa parhaan mahdollisen reitin useista vaihtoehdoista, mikäli sen heuristiikkafunktio ei yliarvioi etäisyyttä kohteeseen~\cite{cui11, sharon15, botea04}. Tärkeisiin heuristisiin algoritmeihin kuuluvat myös iteratiivinen syvyys-A* (iterative-deepening-A*, IDA*) ja syvyyssuuntainen-haarautuva-rajattu (depth-first branch-and-bound, DFBnB)~\cite{felner2004additive}. Resurssitarpeiden kurissapitämiseksi on kehitetty myös erilaisia hierarkiamalleja soveltavia algoritmeja.
+Reitinhaun standardialgoritmi on jo pitkään ollut Dijkstran algoritmiin perustuva A* (eli A-star tai A-tähti), josta on kehitetty lukuisia eri variantteja eri toimintaympäristöjä ja tarpeita silmälläpitäen. Sen etuja on, että se pystyy varmuudella löytämään reitin kohteeseen, jos sellainen on ylipäätään olemassa. Niinikään se antaa parhaan mahdollisen reitin useista vaihtoehdoista, mikäli sen heuristiikkafunktio ei yliarvioi etäisyyttä kohteeseen~\cite{cui11, sharon15, botea04}. Tärkeisiin heuristisiin algoritmeihin kuuluvat myös iteratiivinen syvyys-A* (iterative-deepening-A*, IDA*) ja syvyyssuuntainen-haarautuva-rajattu (depth-first branch-and-bound, DFBnB)~\cite{felner2004additive}. Resurssitarpeiden kurissapitämiseksi on kehitetty myös erilaisia hierarkiamalleja soveltavia algoritmeja, kuten hierarkinen reitinhaku-A* (hierarchical pathfinding A*, HPA*).
 
 \subsection{Dijkstran algoritmi}
 
@@ -267,7 +269,7 @@ LRA* on yleistermi joukolle A*-pohjaisia algoritmeja, jotka jakavat saman toimin
 
 Syklit ovat tässä menetelmässä sekä mahdollisia että yleisiä, joten ongelmaa on pyritty ratkaisemaan lisäämällä niin kutsuttua kohinaa etäisyysheuristiikkaan joka kerta kun yhteentörmäys havaitaan~\cite{silver05}. Jos siis jatkuvasti kohdataan esteitä jossakin solmussa tai jollakin alueella, niin algoritmin laskeman kustannuksen sinne etenemisestä pitäisi ennenpitkää nousta niin suureksi, että toimija hakeutuu ongelma-alueen ympäri tai etsii kokonaan uuden reitin.
 
-Tällainen lähestymistapa johtaa ruuhkatilanteissa helposti oudolta näyttävään poukkoiluun, ja sen myötä prosessoriajan hävikkiin kun jokaisen yhteentörmäyksen yhteydessä reitti pitää laskea uudestaan.
+Tällainen lähestymistapa johtaa ruuhkatilanteissa helposti oudolta näyttävään poukkoiluun, ja sen myötä prosessoriajan hävikkiin laskettaessa reitti jokaisen yhteentörmäyksen yhteydessä uudestaan.
 
 
 \subsection{Cooperative A* (CA*)}
@@ -305,25 +307,14 @@ Ongelmana tämän algoritmin käytössä on reitinhaun lopettamisen määrittele
 \subsection{Windowed Hierarchical Cooperative A* (WHCA*)}
 
 WHCA* eroaa HCA*:sta siinä, että abstraktiotasolla reitti lasketaan maaliin ast, mutta konkreettisen topologian tasolla reitinhaku on rajoitettu johonkin ennaltamääriteltyyn syvyyteen~\cite{silver05, botea13}. Kun reittiä on kuljettu johonkin ennaltamääriteltyyn raja-arvoon asti, esimerkiksi puolet aiemmin lasketusta reitistä, lasketaan uusi osittainen reitti ja niin edelleen. ”Windowed” tarkoittaa tässä siis aikaikkunaa tai kehystä, mihin asti konkreettinen reitti on nähtävillä ja mitä siirretään aina tarpeen mukaan. Resurssien käyttöä voidaan myös tasata antamalla toimijoille erikokoiset ikkunat, jolloin taakka reittien laskemisesta saadaan jakautumaan tasaisemmin. Kuten HCA*, myös WHCA* hyödyntää käänteistä jatkettavaa A*-hakua eli RRA*:ta. Näin voidaan hyödyntää edellisen ikkunan aikana tehtyä hakua, mikä toisaalta tarkoittaa toimijakohtaista kirjanpitoa läpikäydyistä solmuista.
-
-
-
-
+Koska yksittäisiä toimijoita WHCA*-algoritmissa ei johdeta keskitetysti, vaan ne pyrkivät itsenäisesti etsimään lyhintä reittiä maaliin, tuloksena voi olla tarpeetonta törmäilyä tilanteessa missä muuten olisi runsaasti tilaa lähettyvillä~\cite{sharon15}.
 
 \subsection{Conflict-Based Search (CBS)}
 
-Rinnakkaisen reitinhaun optimoimiseen pyrkivä CBS-algoritmi~\cite{sharon15} käyttää kaksitasoista lähestymistapaa, missä ensin käydään läpi ylemmän tason binääristä rajoituspuuta (constraint tree). Rajoituspuun jokaisessa solmussa on joukko rajoitteita (tieto siitä milloin joku topologian solmu on jonkun toimijan varaama), jotka kuuluvat jollekin yksittäiselle toimijalle. Toisekseen rajoituspuun solmuihin on myös talletettu joukko alemmalta tasolta saatuja reittejä, yksi jokaista toimijaa kohti, joiden tulee olla vapaita tiedetyistä yhteentörmäyksistä. Kolmantena niissä on myös yhteenlaskettu solmun reittikustannus, joka koostuu yksittäisen toimijan koko siihenastisen polun kustannuksesta. Rajoituspuu on järjestetty reittikustannuksen mukaan.
+Rinnakkaisen reitinhaun optimoimiseen pyrkivä CBS-algoritmi~\cite{sharon15} käyttää kaksitasoista lähestymistapaa, missä ensin käydään läpi ylemmän tason binääristä rajoituspuuta (constraint tree). Rajoituspuun jokaisessa solmussa on joukko rajoitteita (tieto siitä milloin joku topologian solmu on jonkun toimijan varaama), jotka kuuluvat jollekin yksittäiselle toimijalle. Toiseksi rajoituspuun solmuihin on myös talletettu joukko alemmalta tasolta saatuja reittejä, yksi jokaista toimijaa kohti, joiden tulee olla vapaita tiedetyistä yhteentörmäyksistä. Kolmanneksi niissä on myös yhteenlaskettu solmun reittikustannus, joka koostuu yksittäisen toimijan koko siihenastisen polun kustannuksesta. Rajoituspuu on järjestetty reittikustannuksen mukaan.
 
 Alemmalla tasolla puolestaan voidaan käyttää tavanomaista yhden toimijan reitinhakualgoritmia kuten A* hyödyntäen samalla ylemmältä tasolta saatua tietoa siitä, missä ja milloin on odotettavissa yhteentörmäys jonkun toisen toimijan kanssa. Mikäli kaikesta huolimatta alemmalla tasolla havaitaan yhteentörmäyksiä, päivitetään ylemmän tason rajoituspuuta vastaavasti laajentamalla rajoituspuuta lisäämällä siihen solmuja. Tämän jälkeen tehdään uusi alemman tason haku ja toistetaan edellinen vaihe tarvittaessa.
 \newline
-
-CBS-algoritmin toiminta on tehotonta esimerkiksi tilanteessa 
-
-Meta-agent Conflict-Based Search (MA-CBS)
-
-Improved Conflict-Based Search (ICBS)
-
-
 
 \begin{algorithm}
 \caption{ICBS-algoritmin ylempi taso}
@@ -366,19 +357,16 @@ Improved Conflict-Based Search (ICBS)
 
 \section{Muut rinnakkaisen reitinhaun algoritmit}
 
-\subsection{Multi-agent Rapidly-exploring Random Tree (MA-RRT*)}
-
-
 
 \subsection{Increasing Cost Tree Search}
 
-Guni Sharonin ja kumppaneiden vuonna 2012 julkaisema ICTS-algoritmi on kaksitasoista hierarkiaa hyödyntävä algoritmi~\cite{sharon2013}. Hierarkian ylemmällä tasolla käydään läpi puuta nimeltä \textit{increasing cost tree}. Se muodostuu solmuista, joista jokaisessa oleva taulukko edustaa kaikkia niitä mahdollisia reittiratkaisuja, missä toimijoiden reittien hinta on täsmälleen taulukkoon niitä vastaaville paikoille generoitu luku. Toisin sanoen kyseessä on taulukko $[C_1,...,C_k]$, jossa toimijan $a_i$ reittikustannus löytyy taulukon kohdasta $C_i$.
+Vuonna 2012 julkaistu ICTS-algoritmi on kaksitasoista hierarkiaa hyödyntävä algoritmi~\cite{sharon2013}. Hierarkian ylemmällä tasolla käydään läpi puuta nimeltä \textit{increasing cost tree}. Se muodostuu solmuista, joista jokaisessa oleva taulukko $[C_1,...,C_k]$ edustaa kaikkia niitä mahdollisia reittiratkaisuja, missä toimijoiden reittien hinta on täsmälleen taulukkoon niitä vastaaville paikoille generoitu luku. Toisin sanoen toimijan $a_i$ reittikustannus löytyy taulukon kohdasta $C_i$.
 
 Kuvassa \ref{ict} on havainnollistettu tällaisen puun rakennetta kolmen toimijan tapauksessa. Jokaisessa puun solmussa on kolme lukua, jotka siis edustavat näiden kolmen toimijan etäisyyttä maaliin solmussa pidettyjen reittiratkaisujen osalta. Juurisolmun lukemat ovat toimijoiden suorimmat mahdolliset etäisyydet maaliin, eli tilanne missä maaleihin voitaisiin kulkea välittämättä lainkaan muista toimijoista. Tässä esimerkissä jokaisen kolmesta toimijasta laskennallinen etäisyys maaliin on 10. Juurisolmulle ja jokaiselle solmulle sittemmin lisätään toimijoiden määrää vastaava määrä lapsisolmuja. Näihin lapsisolmuihin puolestaan lisätään siinä oleville toimijoille jokaiselle vuorollaan jokin lukuarvo (tässä 1) edustamaan pidempää reittiä. Toisen rivin ensimmäisessä solmussa on siis ensimmäinen toimija saanut arvon 11, toisessa solmussa keskimmäinen ja kolmannessa viimeinen.
 
 ICT-puuta läpikäytäessä jokaisen solmun kohdalla kutsutaan alemman tason rutiinia tarkistamaan josko solmun määrittämä reittiyhdistelmä on löytynyt. Eli aluksi kokeillaan onko juurisolmun etäisyyksillä löydettävissä reitit kaikille toimijoille ja jos ei, siirrytään puussa alaspäin. Mitä alemmas puussa siis mennään, sitä suurempi on solmuissa olevien reittien hintojen summa.  Puuta käydään läpi leveyssuuntaisella haulla juuresta lähtien, joten ensimmäinen löydetty toteutettavissa oleva reittiratkaisu on myös väistämättä halvin.
 
-Jokaista ICT-solmua tutkittaessa suoritetaan siis reittivertailu alemmalla hierarkiatasolla. Tämä tapahtuu käymällä läpi kunkin toimijan kaikki sellaiset reitit, joiden enimmäishinta on kyseiselle toimijalle ICT-solmussa asetettu arvo, ja vertailemalla näitä keskenään kunnes tuloksena on joukko ristiriidattomia reittejä. Koska eri reittejä voi olla hyvinkin suuri määrä, niiden käsittelemiseen on kehitetty oma algoritminsa, \textit{multi-value decision diagram} (MDD). Varsinaisten reittien muodostamiseen voidaan käyttää mitä tahansa sopivaksi katsottua yhden toimijan reitinhakualgoritmia.
+Jokaista ICT-solmua tutkittaessa suoritetaan siis reittivertailu alemmalla hierarkiatasolla. Tämä tapahtuu käymällä läpi kunkin toimijan kaikki sellaiset reitit, joiden enimmäishinta on kyseiselle toimijalle ICT-solmussa asetettu arvo, ja vertailemalla näitä keskenään kunnes tuloksena on joukko ristiriidattomia reittejä. Koska eri reittejä voi olla hyvinkin suuri määrä, niiden käsittelemiseen on kehitetty oma algoritminsa, \textit{multi-value decision diagram} (MDD). Varsinaisten reittien muodostamiseen konkreettisessa topologiassa voidaan käyttää sopivaksi katsottua yhden toimijan reitinhakualgoritmia.
 
 \begin{figure}
 \captionsetup{width=.65\linewidth}
@@ -410,7 +398,20 @@ Jokaista ICT-solmua tutkittaessa suoritetaan siis reittivertailu alemmalla hiera
 \end{algorithmic}
 \end{algorithm}
 
+\subsection{Tree-based agent swapping strategy (TASS)}
 
+Tämä algoritmi hyödyntää graafien sijaan puurakenteita ja olemassaolevien graafien konvertoimiseen onkin luotu \textit{Graph-to-Tree Decomposition (GTD)}-algoritmeja. TASS on kehitetty erityisesti tilanteisiin, joissa vapaata liikkumatilaa on hyvin vähän.
+TASS:n toimintaperiaatteena on siis topologian käsittely puuna, jossa siirtymät solmujen välillä on sallittu molempiin suuntiin. Puiden rakenteesta johtuen risteyksiä (tai haaroja) käytetään hyväksi toimijoiden uudelleenjärjestämisessä silloin, kun toimijat ovat toistensa tiellä. Tämä on havainnollistettu kuvassa \ref{tass}. Alkiot $u$ ja $v$ eivät voi tässä algoritmissa vaihtaa paikkaa päikseen, vaan ne on uudelleenjärjestettävä tekemällä tilaa lähimpään risteyssolmuun ja sen naapureihin, siirrettävä alkiot risteyksen yli uudelleenjärjestämistä varten, ja sitten palautettava lähtötilanne muilta osin ennalleen.
+Suurempi haarautuvuus nopeuttaa algoritmin toimintaa~\cite{khorshid2011polynomial}.
+
+
+\begin{figure}
+\captionsetup{width=1\linewidth}
+\includegraphics[scale=0.45]{tass}
+\centering
+\caption{Haarautuman hyväksikäyttö uudelleenjärjestämisessä TASS-algoritmilla~\cite{khorshid2011polynomial}.}
+\label{tass}
+\end{figure}
 
 \section{Yhteenveto}
 

@@ -415,6 +415,11 @@ Suurempi haarautuvuus nopeuttaa algoritmin toimintaa~\cite{khorshid2011polynomia
 
 \section{Yhteenveto}
 
+Reitinhaku ja sen erityistapaus rinnakkainen reitinhaku pysyvät avoimina ongelmina vuosikymmeniä kestäneestä tutkimuksesta huolimatta. Syynä tähän on ensisijaisesti algoritmien vaihteleva soveltuvuus eri tarpeisiin, ja toisaalta kasvaneet tehokkuusvaatimukset etenkin tietokonepelien saralla. Kehitys on kulkenut kohti algoritmeja, jotka hyödyntävät useampitasoista hierarkiaa vähentämään laskentaresurssien tarvetta abstraktion kautta, sekä toisaalta kohti puurakenteiden käyttöä.
+Mikäli liikkumatila ei ole minimissään ja toimijoita on paljon, ovat \textit{erotetut} algoritmit, joissa toimijoita käsitellään itsenäisinä tekijöinä, yleensä tehokkaampia ratkaisuja. Ne eivät tavallisesti kuitenkaan johda yhtä optimaalisiin reittivalintoihin kuin \textit{yhdistetyt} algoritmit, joissa toimijoita käsitellään kokonaisuuden osina ja joiden reittejä suunnitellaan alusta asti muita toimijoita silmälläpitäen.
+Ohjelmoijan vastuulle jääkin pohtia topologiaa, toimijoiden lukumäärää ja laskentanopeuden tarvetta reitinhakualgoritmia valitessaan. Minkäänlaista kaikkiin tilanteisiin sopivaa yleisalgoritmia ei ole näköpiirissä, eikä sellaista kenties ole mahdollista toteuttaakaan.
+
+
 % --- References ---
 %
 % bibtex is used to generate the bibliography. The babplain style

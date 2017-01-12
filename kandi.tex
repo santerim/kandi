@@ -88,7 +88,7 @@
 
 % The following can be used to specify keywords and classification of the paper:
 
-\keywords{reitinhaku, multi-agent, pathfinding, MAPF}
+\keywords{reitinhaku, multi-agent pathfinding, MAPF}
 
 % classification according to ACM Computing Classification System (http://www.acm.org/about/class/)
 % This is probably mostly relevant for computer scientists
@@ -237,7 +237,7 @@ Kun kentästä on näin muodostettu abstraktiomalli, sitä käytetään reitinha
 Algoritmin toimintaa voidaan tietyissä tilanteissa parantaa lisäämällä abstraktiotasoja, jolloin jokainen uusi abstraktiotaso on edellistä karkeampi esitys kentän topologiasta.
 
 \begin{figure}
-\captionsetup{width=.9\linewidth}
+\captionsetup{width=1\linewidth}
 \includegraphics[scale=1]{hpa}
 \centering
 \caption{Ylärivillä 40x40 -ruudukon jakaminen 16:een klusteriin HPA*-algoritmin esiprosessoinnissa, alla vasemman yläneljänneksen klustereiden siirtymät~\cite{botea04}.}
@@ -258,11 +258,11 @@ Kuten edellä todettiin, useimmat rinnakkaisen reitinhaun ratkaisemiseen kehitet
 
 \section{A*-pohjaiset rinnakkaisen reitinhaun algoritmit}
 
-kuvaukset:\newline
-Pattern Databases\newline
-Independence detection (ID)\newline
-Operator decomposition (OD)\newline
-Enhanced partial expansion A* (EPEA*)
+%kuvaukset:\newline
+%Pattern Databases\newline
+%Independence detection (ID)\newline
+%Operator decomposition (OD)\newline
+%Enhanced partial expansion A* (EPEA*)
 \subsection{Local Repair A* (LRA*)}
 
 LRA* on yleistermi joukolle A*-pohjaisia algoritmeja, jotka jakavat saman toimintaperiaatteen: Jokainen toimija etsii reitin A*:lla ja seuraa sitä siihen asti kunnes siirtyminen seuraavaan solmuun saisi aikaan yhteentörmäyksen jonkun toisen toimijan kanssa, eli solmu johon pitäisi siirtyä on varattu. Tällöin tehdään uusi A*-haku ja jatketaan niin kauan kunnes on tultu maaliin.

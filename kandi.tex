@@ -186,7 +186,7 @@ Saman kuvan alemmalla puoliskolla nähdään miten A*-algoritmin toimintaperiaat
 \captionsetup{width=\linewidth}
 \includegraphics[width=\textwidth, keepaspectratio]{dijkstra_astar}
 \centering
-\caption{Ylempänä esteen kiertäminen Dijkstran algoritmilla ja alla sama A*-algoritmilla~\cite{astar_kuva}}
+\caption{Ylempänä reitinhaku Dijkstran algoritmilla ja alempana A*-algoritmilla~\cite{astar_kuva}.}
 \label{dijkstrab}
 \end{figure}
 
@@ -394,7 +394,7 @@ Jokaista ICT-solmua tutkittaessa suoritetaan siis reittivertailu alemmalla hiera
 
 \subsection{Tree-based agent swapping strategy (TASS)}
 
-Tämä algoritmi hyödyntää graafien sijaan puurakenteita ja olemassaolevien graafien konvertoimiseen onkin luotu \textit{Graph-to-Tree Decomposition (GTD)}-algoritmeja. TASS on kehitetty erityisesti tilanteisiin, joissa vapaata liikkumatilaa on hyvin vähän.
+Tämä vuoden 2011 algoritmi hyödyntää graafien sijaan puurakenteita ja olemassaolevien graafien konvertoimiseen onkin kehittäjien toimesta luotu \textit{Graph-to-Tree Decomposition (GTD)}-algoritmeja. TASS on kehitetty erityisesti tilanteisiin, joissa vapaata liikkumatilaa on hyvin vähän.
 TASS:n toimintaperiaatteena on siis topologian käsittely puuna, jossa siirtymät solmujen välillä on sallittu molempiin suuntiin. Puiden rakenteesta johtuen risteyksiä (tai haaroja) käytetään hyväksi toimijoiden uudelleenjärjestämisessä silloin, kun toimijat ovat toistensa tiellä. Tämä on havainnollistettu kuvassa \ref{tass}. Alkiot $u$ ja $v$ eivät voi tässä algoritmissa vaihtaa paikkaa päikseen, vaan ne on uudelleenjärjestettävä tekemällä tilaa lähimpään risteyssolmuun ja sen naapureihin, siirrettävä alkiot risteyksen yli uudelleenjärjestämistä varten, ja sitten palautettava lähtötilanne muilta osin ennalleen.
 Suurempi haarautuvuus nopeuttaa algoritmin toimintaa~\cite{khorshid2011polynomial}.
 
@@ -407,11 +407,27 @@ Suurempi haarautuvuus nopeuttaa algoritmin toimintaa~\cite{khorshid2011polynomia
 \label{tass}
 \end{figure}
 
+\subsection{Push and Swap}
+
+Push and Swap edustaa rinnakkaisen reitinhaun uutta sukupolvea (2011) ja on verrattaen yksinkertainen toimintaperiaatteeltaan. Nimensä mukaisesti algoritmissa on kaksi keskeistä operaatiota, \textit{Push} ja \textit{Swap}, sekä kaksi apuoperaatiota, \textit{Clear} ja \textit{Resolve}. Push-operaatio liikuttaa toimijaa $r$ kohti maalia. Mikäli maaliin ei päästä jonkun toisen toimijan tukkiessa tien, push yrittää työntää tiellä olevat toimijat pois edestä näiden viereisiin vapaisiin solmuihin ja jatkaa sitten maaliin. Mikäli vapaata tilaa ei ole, tai pitäisi työntää jo omiin maaleihinsa löytäneitä toimijoita sivuun, otetaan Swap-operaatio käyttöön. Swap ottaa käsiteltäväksi myös toimijan $s$, joka on suoraan $r$:n edessä lyhimmällä reitillä kohti maalia. Nyt $r$ ja $s$ pyrkivät työntämään kaikkia edessä olevia toimijoita pois tieltä, vaikka ne olisivat jo maaliin päässeitä. Pyrkimys on työntyä $r$:n maalisolmuun asti, vapauttaa sen vierestä kaksi solmua Clear-operaatiolla paikanvaihdosta varten, ja tämän jälkeen järjestää edestä työnnetyt toimijat takaisin alkuperäisille paikoilleen Resolve-operaatiolla käänteisessä järjestyksessä~\cite{luna2011push}.
+
+\begin{figure}
+\captionsetup{width=1\linewidth}
+\includegraphics[scale=1]{push_swap}
+\centering
+\caption{Yksinkertainen Swap-operaatio Push and Swap-algoritmilla, missä tarkoitus on vaihtaa 1:n ja 2:n paikkaa~\cite{luna2011push}.}
+\label{push_swap}
+\end{figure}
+
+\subsection{Push and Rotate}
+
+~\cite{de2013push}
+
 \section{Yhteenveto}
 
-Reitinhaku ja sen erityistapaus rinnakkainen reitinhaku pysyvät avoimina ongelmina vuosikymmeniä kestäneestä tutkimuksesta huolimatta. Syynä tähän on ensisijaisesti algoritmien vaihteleva soveltuvuus eri tarpeisiin, ja toisaalta kasvaneet tehokkuusvaatimukset etenkin tietokonepelien saralla. Kehitys on kulkenut kohti algoritmeja, jotka hyödyntävät useampitasoista hierarkiaa vähentämään laskentaresurssien tarvetta abstraktion kautta, sekä toisaalta kohti puurakenteiden käyttöä.
-Mikäli liikkumatila ei ole minimissään ja toimijoita on paljon, ovat \textit{erotetut} algoritmit, joissa toimijoita käsitellään itsenäisinä tekijöinä, yleensä tehokkaampia ratkaisuja. Ne eivät tavallisesti kuitenkaan johda yhtä optimaalisiin reittivalintoihin kuin \textit{yhdistetyt} algoritmit, joissa toimijoita käsitellään kokonaisuuden osina ja joiden reittejä suunnitellaan alusta asti muita toimijoita silmälläpitäen.
-Ohjelmoijan vastuulle jääkin pohtia topologiaa, toimijoiden lukumäärää ja laskentanopeuden tarvetta reitinhakualgoritmia valitessaan. Minkäänlaista kaikkiin tilanteisiin sopivaa yleisalgoritmia ei ole näköpiirissä, eikä sellaista kenties ole mahdollista toteuttaakaan.
+Reitinhaku ja sen erityistapaus rinnakkainen reitinhaku pysyvät avoimina ongelmina vuosikymmeniä kestäneestä tutkimuksesta huolimatta. Syynä tähän on ensisijaisesti algoritmien vaihteleva soveltuvuus eri tarpeisiin, ja toisaalta kasvaneet tehokkuusvaatimukset etenkin tietokonepelien saralla. Kehitys on toisaalta kulkenut kohti algoritmeja, jotka hyödyntävät useampitasoista hierarkiaa vähentämään laskentaresurssien tarvetta abstraktion kautta, sekä toisaalta kohti kokonaan uudenlaisia ajattelumalleja, kuten \textit{Push and Swap} tai \textit{Push and Rotate}.
+Mikäli liikkumatila ei ole minimissään ja toimijoita on paljon, ovat \textit{erotetut} algoritmit, joissa toimijoita käsitellään itsenäisinä tekijöinä, yleensä tehokkaampia ratkaisuja. Ne eivät tavallisesti kuitenkaan johda yhtä optimaalisiin reittivalintoihin kuin \textit{yhdistetyt} algoritmit, joissa toimijoita käsitellään kokonaisuuden osina ja joiden reittejä suunnitellaan alusta asti muita toimijoita silmälläpitäen~\cite{luna2011push}.
+Ohjelmoijan vastuulle jääkin pohtia topologiaa, toimijoiden lukumäärää ja laskentanopeuden tarvetta reitinhakualgoritmia valitessaan. Kaikkiin tilanteisiin sopivaa yleisalgoritmia ei ole olemassa, eikä sellaista kenties ole mahdollista toteuttaakaan.
 
 
 % --- References ---
@@ -426,8 +442,8 @@ Ohjelmoijan vastuulle jääkin pohtia topologiaa, toimijoiden lukumäärää ja 
 
 \pagebreak
 
-\bibliographystyle{unsrt}
-% \bibliographystyle{babplain-lf}
+\bibliographystyle{babplain-lf}
+%\bibliographystyle{unsrt}
 \bibliography{references-fi}
 
 

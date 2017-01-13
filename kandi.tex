@@ -409,25 +409,35 @@ Suurempi haarautuvuus nopeuttaa algoritmin toimintaa~\cite{khorshid2011polynomia
 
 \subsection{Push and Swap}
 
-Push and Swap edustaa rinnakkaisen reitinhaun uutta sukupolvea (2011) ja on verrattaen yksinkertainen toimintaperiaatteeltaan. Nimensä mukaisesti algoritmissa on kaksi keskeistä operaatiota, \textit{Push} ja \textit{Swap}, sekä kaksi apuoperaatiota, \textit{Clear} ja \textit{Resolve}. Push-operaatio liikuttaa toimijaa $r$ kohti maalia. Mikäli maaliin ei päästä jonkun toisen toimijan tukkiessa tien, push yrittää työntää tiellä olevat toimijat pois edestä näiden viereisiin vapaisiin solmuihin ja jatkaa sitten maaliin. Mikäli vapaata tilaa ei ole, tai pitäisi työntää jo omiin maaleihinsa löytäneitä toimijoita sivuun, otetaan Swap-operaatio käyttöön. Swap ottaa käsiteltäväksi myös toimijan $s$, joka on suoraan $r$:n edessä lyhimmällä reitillä kohti maalia. Nyt $r$ ja $s$ pyrkivät työntämään kaikkia edessä olevia toimijoita pois tieltä, vaikka ne olisivat jo maaliin päässeitä. Pyrkimys on työntyä $r$:n maalisolmuun asti, vapauttaa sen vierestä kaksi solmua Clear-operaatiolla paikanvaihdosta varten, ja tämän jälkeen järjestää edestä työnnetyt toimijat takaisin alkuperäisille paikoilleen Resolve-operaatiolla käänteisessä järjestyksessä~\cite{luna2011push}.
+Push and Swap edustaa rinnakkaisen reitinhaun uutta sukupolvea (2011) ja on verrattaen yksinkertainen toimintaperiaatteeltaan. Nimensä mukaisesti algoritmissa on kaksi keskeistä operaatiota, \textit{Push} ja \textit{Swap}, sekä kaksi apuoperaatiota, \textit{Clear} ja \textit{Resolve}. Toimijoiden suoritusjärjestys määräytyy jonkin ennaltamääritellyn prioriteettijonon perusteella~\cite{luna2011push}.
+
+Push-operaatio liikuttaa toimijaa $r$ kohti maalia. Mikäli maaliin ei päästä jonkun toisen toimijan $s$ tukkiessa tien ja ollessa alempi prioriteetiltaan, Push yrittää työntää tiellä olevat toimijat pois edestä vapaisiin solmuihin ja jatkaa sitten maaliin. Mikäli vapaata tilaa ei ole, työntäminen vaatisi $r$:n itsensä siirtymistä, työnnettävällä toimijalla on korkeampi prioriteetti, tai pitäisi työntää jo omiin maaleihinsa löytäneitä toimijoita sivuun, otetaan Swap-operaatio käyttöön.
+
+Swap siirtää sekä $r$:n että $s$:n lähimpään sellaiseen paikkaan graafissa, jossa on riittävästi tilaa paikkojen vaihtamiseen, kuten nähdään kuvassa \ref{push_swap}. Seuraavaksi suoritetaan Clear-operaatio, jolla pyritään tyhjentämään kohdesolmun viereiset solmut työntämällä niissä olevat toimijat muihin vapaisiin solmuihin. Esimerkkikuvassamme kohdesolmu on keskellä sijaitseva $v$, jonka vierellä on kaksi tyhjää solmua joihin sekä $r$ että $s$ voivat väistää. Jos Clear onnistui, palautetaan mahdollisesti edestä työnnetyt toimijat takaisin alkuperäisille paikoilleen. Toisin kuin Push, Swap voi siirtää korkeamman prioriteetin omaavia, sekä omiin maaleihinsa jo päässeitä toimijoita paikoiltaan. Tämä voi johtaa siihen, että $r$ on nyt jonkun muun toimijan $t$ maalisolmussa. Tilanne ratkaistaan Resolve-operaatiolla: Ensin $r$ yritetään työntää edelleen kohti maaliaan. Mikäli tämä onnistuu, voidaan $t$ palauttaa maalisolmuunsa. Mikäli ei, Swap:ia kutsutaan $r$:lle uudestaan. Jos tämä ei onnistu, suoritetaan Swap $t$:lle~\cite{de2013push}.
+
+Tässä algoritmissa on kuitenkin joitakin ongelmia. Swap-operaatio vaatii toimiakseen sellaisen solmun, jolla on vähintään kolme naapuria, mikä rajoittaa topologioita missä Push and Swap voi toimia. Swap voi myös johtaa laittomaan (illegal) tilaan, mikäli se saa aikaan useita muita Swap-operaatioita ahtaassa tilassa. Graafissa esiintyvä kannas (isthmus) voi johtaa lukkiutumiseen. Clear-operaatio ei osaa käsitellä tilannetta, missä siirtämällä tiellä olevaa toimijaa kahdesti saataisiin riittävästi tilaa paikanvaihtoa varten.
+
+%Swap ottaa käsiteltäväksi myös toimijan $s$, joka on suoraan $r$:n edessä lyhimmällä reitillä kohti maalia. Nyt $r$ ja $s$ pyrkivät työntämään kaikkia edessä olevia toimijoita pois tieltä, mukaanlukien jo omiin maaleihinsa päässeet. Pyrkimys on työntyä $r$:n maalisolmuun asti, vapauttaa sen vierestä kaksi solmua Clear-operaatiolla paikanvaihdosta varten, ja tämän jälkeen järjestää edestä työnnetyt toimijat takaisin alkuperäisille paikoilleen Resolve-operaatiolla käänteisessä järjestyksessä~\cite{luna2011push, de2013push}.
 
 \begin{figure}
 \captionsetup{width=1\linewidth}
-\includegraphics[scale=1]{push_swap}
+\includegraphics[scale=1]{push_swap2}
 \centering
-\caption{Yksinkertainen Swap-operaatio Push and Swap-algoritmilla, missä tarkoitus on vaihtaa 1:n ja 2:n paikkaa~\cite{luna2011push}.}
+\caption{Push and Swap-algoritmi: Alkioiden $r$ ja $s$ paikat vaihdetaan Swap-operaatiolla~\cite{luna2011push}.}
 \label{push_swap}
 \end{figure}
 
 \subsection{Push and Rotate}
 
+Tämä on Push and Swap:iin perustuva algoritmi vuodelta 2013. 
+
 ~\cite{de2013push}
 
 \section{Yhteenveto}
 
-Reitinhaku ja sen erityistapaus rinnakkainen reitinhaku pysyvät avoimina ongelmina vuosikymmeniä kestäneestä tutkimuksesta huolimatta. Syynä tähän on ensisijaisesti algoritmien vaihteleva soveltuvuus eri tarpeisiin, ja toisaalta kasvaneet tehokkuusvaatimukset etenkin tietokonepelien saralla. Kehitys on toisaalta kulkenut kohti algoritmeja, jotka hyödyntävät useampitasoista hierarkiaa vähentämään laskentaresurssien tarvetta abstraktion kautta, sekä toisaalta kohti kokonaan uudenlaisia ajattelumalleja, kuten \textit{Push and Swap} tai \textit{Push and Rotate}.
+Reitinhaku ja sen erityistapaus rinnakkainen reitinhaku pysyvät avoimina ongelmina vuosikymmeniä kestäneestä tutkimuksesta huolimatta. Syynä tähän on ensisijaisesti algoritmien vaihteleva soveltuvuus eri tarpeisiin, ja toisaalta kasvaneet tehokkuusvaatimukset etenkin tietokonepelien saralla. Kehitys on toisaalta kulkenut kohti algoritmeja, jotka hyödyntävät useampitasoista hierarkiaa vähentämään laskentaresurssien tarvetta abstraktion kautta, sekä toisaalta kohti perinteistä poikkeavia lähestymistapoja, kuten \textit{Push and Swap} tai \textit{Push and Rotate}.
 Mikäli liikkumatila ei ole minimissään ja toimijoita on paljon, ovat \textit{erotetut} algoritmit, joissa toimijoita käsitellään itsenäisinä tekijöinä, yleensä tehokkaampia ratkaisuja. Ne eivät tavallisesti kuitenkaan johda yhtä optimaalisiin reittivalintoihin kuin \textit{yhdistetyt} algoritmit, joissa toimijoita käsitellään kokonaisuuden osina ja joiden reittejä suunnitellaan alusta asti muita toimijoita silmälläpitäen~\cite{luna2011push}.
-Ohjelmoijan vastuulle jääkin pohtia topologiaa, toimijoiden lukumäärää ja laskentanopeuden tarvetta reitinhakualgoritmia valitessaan. Kaikkiin tilanteisiin sopivaa yleisalgoritmia ei ole olemassa, eikä sellaista kenties ole mahdollista toteuttaakaan.
+Ohjelmoijan vastuulle jääkin pohtia topologiaa, toimijoiden lukumäärää ja laskentanopeuden tarvetta sopivaa reitinhakualgoritmia valitessaan. Kaikkiin tilanteisiin sopivaa yleisalgoritmia ei ole olemassa, eikä sellaista kenties ole mahdollista toteuttaakaan.
 
 
 % --- References ---

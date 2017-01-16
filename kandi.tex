@@ -84,7 +84,9 @@
 \author{Santeri Martikainen}
 \date{\today}
 \level{Kandidaatintutkielma}
-\abstract{}
+\abstract{Reitinhaku tuonee useimmille ensimmäisenä mieleen erilaiset karttasovellukset, jotka auttavat löytämään haluttuun osoitteeseen. Käyttökohteita on kuitenkin monella muullakin saralla, kuten esimerkiksi robottien liikeratojen ohjailussa, pelastustoimien suunnittelussa ja tietokonepeleissä. Tarkoitusta varten on kehitetty lukuisia algoritmeja, joiden soveltuvuus ongelman ratkaisuun riippuu pitkälti toimintaympäristöstä ja reitinhaulle asetetuista reunaehdoista.\newline
+
+\noindent \textit{Rinnakkaisella} reitinhaulla puolestaan tarkoitetaan asetelmaa, missä reittiä ei haeta vain yhdelle toimijalle. Tällöin ongelmana on myös toimijoiden välisten konfliktitilanteiden tehokas ratkaiseminen, sekä usein myös laskennan suorittaminen aikarajan puitteissa. Tässä tutkielmassa tarkastellaan siis lähinnä rinnakkaista reitinhakua, sekä etenkin siihen kehitettyjä algoritmeja.}
 
 % The following can be used to specify keywords and classification of the paper:
 
@@ -94,7 +96,11 @@
 % This is probably mostly relevant for computer scientists
 % uncomment the following; contents of \classification will be printed under the abstract with a title
 % "ACM Computing Classification System (CCS):"
-% \classification{}
+\classification{
+$\bullet$~Computing methodologies $\rightarrow$ Artificial intelligence $\rightarrow$ Control methods $\rightarrow$ Motion path planning,
+
+\noindent$\bullet$~Computing methodologies $\rightarrow$ Artificial intelligence $\rightarrow$ Planning and scheduling $\rightarrow$ Multi-agent planning
+}
 
 % If the automatic page number counting is not working as desired in your case,
 % uncomment the following to manually set the number of pages displayed in the abstract page:
@@ -133,11 +139,11 @@
 
 \section{Johdanto}
 
-Reitinhaussa on pohjimmiltaan kyse mahdollisimman suoran ja nopean polun löytämisestä kahden pisteen välillä jossakin topologiassa. Topologia, eli kenttä tai alue, voi olla reaalimaailmassa, kuten tieverkosto autonavigaattorin reitinhaussa tai vaikkapa kokoonpanolinjan robotin käytettävissä oleva liikkumatila. Topologia voi myös olla täysin virtuaalinen, kuten tietokonepelien pelimaailmat. Muita käyttökohteita ovat muun muassa liikenteen ja väkijoukkojen mallintaminen, poliisin ja pelastustoimen tehtävät, sekä tietoliikenneverkot. Käyttökohteesta riippumatta topologia, jossa reittejä etsitään, on mallinnettava tietorakenteiksi sen läpikäyntiä varten.
+Reitinhaussa on pohjimmiltaan kyse mahdollisimman suoran ja nopean polun löytämisestä kahden pisteen välillä jossakin topologiassa. Topologia, eli kenttä tai alue, voi olla reaalimaailmassa, kuten tieverkosto autonavigaattorin reitinhaussa tai vaikkapa kokoonpanolinjan robotin käytettävissä oleva liikkumatila. Topologia voi myös olla täysin virtuaalinen, kuten tietokonepelien pelimaailmat. Muita käyttökohteita ovat muun muassa liikenteen ja väkijoukkojen mallintaminen, poliisin ja pelastustoimen tehtävät, sekä tietoliikenneverkot. Käyttökohteesta riippumatta topologia, jossa reittejä etsitään, on mallinnettava tietorakenteiksi sen läpikäyntiä varten.\newline
 
-Oli reitinhaun sovelluskohde mikä hyvänsä, mikäli varsinaista reitinhakua tarvitaan ei reitin löytäminen jokaisella suorituskerralla voi olla täysin suoraviivaista ja triviaalia. Mikäli näin olisi, asia voitaisiin ratkaista yksinkertaisesti laskemalla lyhin etäisyys mitä pitkin liikkua suoraan kohteeseen ja toimia sen mukaan. Kysymys on siis reittien löytämisestä tietyin reunaehdoin. Esimerkiksi navigaattoria käyttävää autoilija haluaa kaikella todennäköisyydellä ajaa määränpäähänsä lyhintä reittiä teitä pitkin oikaisematta yhdenkään metsän tai järven lävitse.
+\noindent Oli sovelluskohde mikä hyvänsä, varsinaista reitinhakua tarvitaan vain mikäli reitin löytäminen jokaisella suorituskerralla  olla täysin suoraviivaista ja triviaalia. Mikäli näin olisi, asia voitaisiin ratkaista yksinkertaisesti laskemalla lyhin etäisyys mitä pitkin liikkua suoraan kohteeseen ja toimia sen mukaan. Kysymys on siis reittien löytämisestä tietyin reunaehdoin. Esimerkiksi navigaattoria käyttävä autoilija haluaa kaikella todennäköisyydellä ajaa määränpäähänsä lyhintä reittiä teitä pitkin oikaisematta yhdenkään metsän tai järven lävitse.\newline
 
-Tässä tutkielmassa tarkastellaan ensin reitinhakua itsessään ja sen ratkaisemista yhden toimijan (agent) reitinhakualgoritmeilla. Jäljempänä käsittelemme monen yhtaikaisen toimijan reitinhakua (multi-agent pathfinding, MAPF) ja siihen kehitettyjä algoritmeja. 
+\noindent Tässä tutkielmassa tarkastellaan ensin reitinhakua itsessään ja sen ratkaisemista yhden toimijan (agent) reitinhakualgoritmeilla. Jäljempänä käsittelemme monen yhtaikaisen toimijan reitinhakua (multi-agent pathfinding, MAPF) ja siihen kehitettyjä algoritmeja. 
 
 % Write some science here.
 
@@ -145,26 +151,28 @@ Tässä tutkielmassa tarkastellaan ensin reitinhakua itsessään ja sen ratkaise
 
 \section{Reitinhaku}
 
-Reitinhaun toteuttaminen jakaantuu kahteen vaiheeseen: Toimintaympäristöstä tai topologiasta muodostetaan ensin yksinkertaistettu malli, minkä jälkeen sitä käydään läpi jollakin algoritmilla halutun reitin löytämiseksi. Algoritmia ohjaa heuristiikkafunktio jolla arvioidaan etäisyyttä kohteeseen ja voidaan siten vertailla eri reittivaihtoehtojen keskinäistä paremmuutta. Jonkin reitin paremmuuteen muihin nähden voi vaikuttaa pituuden lisäksi myös sen nopeus.
+Reitinhaun toteuttaminen jakaantuu kahteen vaiheeseen: toimintaympäristöstä tai topologiasta muodostetaan ensin yksinkertaistettu malli, minkä jälkeen sitä käydään läpi jollakin algoritmilla halutun reitin löytämiseksi. Algoritmia ohjaa heuristiikkafunktio, jolla arvioidaan etäisyyttä kohteeseen ja voidaan siten vertailla eri reittivaihtoehtojen keskinäistä paremmuutta. Jonkin reitin paremmuuteen muihin nähden voi vaikuttaa pituuden lisäksi myös sen nopeus.\newline
 
-Topologiasta riippumatta mallinnuksen tuloksena on useimmiten verkko \texttt{G=(V,E)}, missä \texttt{V} (vertex) on joukko solmuja ja \texttt{E} (edge) joukko solmuja yhdistäviä kaaria. Liikkuminen voi esimerkiksi tapahtua solmusta toiseen, tai sitten solmut voivat edustaa kiintopisteitä joiden läheisyydessä voidaan liikkua ilman erillistä reitinhakua. Solmut voivat myös toimia esteinä, jolloin niihin liikkuminen on estetty. Tämä voi myös olla vain solmun väliaikainen tila esimerkiksi jonkun toisen toimijan ollessa liikkumisen tiellä. Verkko voi siis olla dynaaminen, eli sen rakenne saattaa muuttua kesken reittien läpikäymisen, mikä asettaa omat haasteensa reitinhaulle~\cite{botea13, algfoor15}. Topologia voidaan toisinaan mallintaa myös puurakenteena~\cite{khorshid2011polynomial}.
+\noindent Topologiasta riippumatta mallinnuksen tuloksena on useimmiten verkko \texttt{G=(V,E)}, missä \texttt{V} (vertex) on joukko solmuja ja \texttt{E} (edge) joukko solmuja yhdistäviä kaaria. Liikkuminen voi esimerkiksi tapahtua solmusta toiseen, tai sitten solmut voivat edustaa kiintopisteitä joiden läheisyydessä voidaan liikkua ilman erillistä reitinhakua. Solmut voivat myös toimia esteinä, jolloin niihin liikkuminen on estetty. Tämä voi myös olla vain solmun väliaikainen tila esimerkiksi jonkun toisen toimijan ollessa liikkumisen tiellä. Verkko voi siis olla dynaaminen, eli sen rakenne saattaa muuttua kesken reittien läpikäymisen, mikä asettaa omat haasteensa reitinhaulle~\cite{botea13, algfoor15, khorshid2011polynomial}.\newline
 
-Edellämainittujen esteiden ja muuttuvan toimintaympäristön lisäksi reitinhaun keskeisiä ongelmia on resurssien käyttö. Mitä laajemmassa topologiassa reitinhaku suoritetaan, sitä enemmän laskentaresursseja (muistia, prosessoriaikaa) siihen menee. Joissakin tilanteissa voidaan tyytyä osittaiseen reitinhakuun, eli reittiä ei lasketa loppuun asti, vaan ainoastaan johonkin tiettyyn ennaltamäärättyyn pisteeseen ja uusi reitinhaku tehdään kun jokin välietappi on saavutettu. Tässä on luonnollisesti varmistuttava siitä, että valittuun suuntaan lähteminen todella mahdollistaa perille pääsemisen. Toinen lähestymistapa on kaikkien mahdollisten reittien laskeminen ennakkoon, jolloin haluttu reitti kahden sijainnin välillä yksinkertaisesti haetaan taulukosta tarvittaessa. Tämän menetelmän heikkoutena on, että kyseisestä taulukosta saattaa tulla niin suuri, että varsinainen reitinhaku on nopeampi toteuttaa. Niinikään se vaatii käytännössä mainitun taulukon pitämistä jatkuvasti muistissa.
+\noindent Esteiden kiertämisen ja mahdollisesti muuttuvan toimintaympäristön lisäksi reitinhaun keskeisiä ongelmia on resurssien käyttö. Mitä laajemmassa topologiassa reitinhaku suoritetaan, sitä enemmän laskentaresursseja (muistia, prosessoriaikaa) siihen menee. Joissakin tilanteissa voidaan tyytyä osittaiseen reitinhakuun, eli reittiä ei lasketa loppuun asti, vaan ainoastaan johonkin tiettyyn ennaltamäärättyyn pisteeseen ja uusi reitinhaku tehdään kun jokin välietappi on saavutettu. Tässä on luonnollisesti varmistuttava siitä, että valittuun suuntaan lähteminen todella mahdollistaa perille pääsemisen.\newline
+
+Toinen lähestymistapa on kaikkien mahdollisten reittien laskeminen ennakkoon, jolloin haluttu reitti kahden sijainnin välillä yksinkertaisesti haetaan taulukosta tarvittaessa. Tämän menetelmän heikkoutena on, että kyseisestä taulukosta saattaa tulla niin suuri, että varsinainen reitinhaku on nopeampi toteuttaa. Niinikään se vaatii käytännössä mainitun taulukon pitämistä jatkuvasti muistissa. Koska reitinhaulta usein vaaditaan reaaliaikaisuutta, tällainen lähestymistapa soveltuu vain verrattaen pieneen toimintaympäristöön.\newline
 
 %pelimaailman tyypillinen tilanne tähän
 
 %Tyypillisesti kenttä muodostetaan soluista (cell), joista toisinaan käytetään myös nimitystä laatta (tile). Solut ovat käytännössä monikulmioita, usein joko kolmioita, neliöitä tai kuusikulmioita. Edellämainitut muodot ovat ainoat monikulmiot, joita yhdistelemällä voidaan jokin alue kattaa yhtenäisesti ilman väliin jääviä aukkoja, mikäli kenttä halutaan mallintaa keskenään samankokoisilla soluilla. Mallinnus voidaan tehdä myös vaihtelevan kokoisilla monikulmioilla. Solut joissa kentällä voidaan liikkua muodostavat reitinhaussa käytettävän verkon (graph) solmut (vertex)~\cite{botea13, cui11}.
 
-Reitinhaun standardialgoritmi on jo pitkään ollut Dijkstran algoritmiin perustuva A* (eli A-star tai A-tähti), josta on kehitetty lukuisia eri variantteja eri toimintaympäristöjä ja tarpeita silmälläpitäen. Sen etuja on, että se pystyy varmuudella löytämään reitin kohteeseen, jos sellainen on ylipäätään olemassa. Niinikään se antaa parhaan mahdollisen reitin useista vaihtoehdoista, mikäli sen heuristiikkafunktio ei yliarvioi etäisyyttä kohteeseen~\cite{cui11, sharon15, botea04}. Tärkeisiin heuristisiin algoritmeihin kuuluvat myös iteratiivinen syvyys-A* (iterative-deepening-A*, IDA*) ja syvyyssuuntainen-haarautuva-rajattu (depth-first branch-and-bound, DFBnB)~\cite{felner2004additive}. Resurssitarpeiden kurissapitämiseksi on kehitetty myös erilaisia hierarkiamalleja soveltavia algoritmeja, kuten hierarkinen reitinhaku-A* (hierarchical pathfinding A*, HPA*).
+\noindent Reitinhaun standardialgoritmi on jo pitkään ollut Dijkstran algoritmiin perustuva A* (eli A-star tai A-tähti), josta on kehitetty lukuisia eri variantteja eri toimintaympäristöjä ja tarpeita silmälläpitäen. Sen etuja on, että se pystyy varmuudella löytämään reitin kohteeseen, jos sellainen on ylipäätään olemassa. Niinikään se antaa parhaan mahdollisen reitin useista vaihtoehdoista, mikäli sen heuristiikkafunktio ei yliarvioi etäisyyttä kohteeseen~\cite{cui11, sharon15, botea04}. Tärkeisiin heuristisiin algoritmeihin kuuluvat myös iteratiivinen syvyys-A* (iterative-deepening-A*, IDA*) ja syvyyssuuntainen-haarautuva-rajattu (depth-first branch-and-bound, DFBnB)~\cite{felner2004additive}. Resurssitarpeiden kurissapitämiseksi on kehitetty myös erilaisia hierarkiamalleja soveltavia algoritmeja, kuten hierarkinen reitinhaku-A* (hierarchical pathfinding A*, HPA*).
 
 \subsection{Dijkstran algoritmi}
 
-Edsger Dijkstra esitteli 1959 algoritmin, joka etsii lyhimmät reitit kaikkien graafissa esiintyvien solmujen välillä~\cite{dijkstra1959numerische}. Kyseessä on leveyssuuntaista hakua toteuttava algoritmi. Tämä tarkoittaa, että ensin tutkitaan kaikki lähtösolmun naapurit, sitten naapureiden naapurit ja niin edelleen, kunnes joko kaikki solmut on käyty läpi, tai jokin algoritmille asetettu pysähtymisehto on täyttynyt. Tällainen ehto voi olla esimerkiksi reitin löytyminen kahden määritellyn solmun välillä.
+Edsger Dijkstra esitteli 1959 algoritmin, joka etsii lyhimmät reitit kaikkien graafissa esiintyvien solmujen välillä~\cite{dijkstra1959numerische}. Kyseessä on leveyssuuntaista hakua toteuttava algoritmi. Tämä tarkoittaa, että ensin tutkitaan kaikki lähtösolmun naapurit, sitten naapureiden naapurit ja niin edelleen, kunnes joko kaikki solmut on käyty läpi, tai jokin algoritmille asetettu pysähtymisehto on täyttynyt. Tällainen ehto voi olla esimerkiksi reitin löytyminen kahden määritellyn solmun välillä.\newline
 
-Kuvassa \ref{dijkstra} nähdään miten viisisolmuisessa graafissa löydetään lyhyimmät reitit solmujen (ympyrät) välillä. Solmuja yhdistää joukko suunnattuja kaaria, joiden vieressä oleva luku kuvaa kaaren painoa, eli sen kulkemisen hintaa. Ainoastaan lähtösolmu $s$ on tässä vaiheessa saanut numeroarvon, joka kuvaa sen etäisyyttä lähtösolmuun. Kohdassa b on tutkittu ne solmut joihin edellisestä solmusta pääsee, sekä asetettu niille etäisyysarvot. C-kohdassa on jälleen jatkettu yksi askel eteenpäin, mutta on huomattava kuinka solmun $t$ arvo on nyt muuttunut b-kohtaan verrattuna. Tämä johtuu siitä, että $y$-solmun kautta kulkeva reitti on havaittu lyhyemmäksi kuin suora yhteys $s$- ja $t$-solmujen välillä. Tätä jatketaan niin kauan kunnes koko graafi on käyty läpi ~\cite{dijkstra1959numerische, skiena1990dijkstra}.
-Dijkstran algoritmia käytetään edelleen muun muassa joissakin tietoliikenneverkkojen reititysprotokollissa.
+\noindent Kuvassa \ref{dijkstra} nähdään miten viisisolmuisessa graafissa löydetään lyhyimmät reitit solmujen (ympyrät) välillä. Solmuja yhdistää joukko suunnattuja kaaria, joiden vieressä oleva luku kuvaa kaaren painoa, eli sen kulkemisen hintaa. Ainoastaan lähtösolmu $s$ on tässä vaiheessa saanut numeroarvon, joka kuvaa sen etäisyyttä lähtösolmuun. Kohdassa b on tutkittu ne solmut joihin edellisestä solmusta pääsee, sekä asetettu niille etäisyysarvot. C-kohdassa on jälleen jatkettu yksi askel eteenpäin, mutta on huomattava kuinka solmun $t$ arvo on nyt muuttunut b-kohtaan verrattuna. Tämä johtuu siitä, että $y$-solmun kautta kulkeva reitti on havaittu lyhyemmäksi kuin suora yhteys $s$- ja $t$-solmujen välillä. Tätä jatketaan niin kauan kunnes koko graafi on käyty läpi ~\cite{dijkstra1959numerische, skiena1990dijkstra}.
+Dijkstran algoritmia käytetään edelleen muun muassa joissakin tietoliikenneverkkojen reititysprotokollissa~\cite{moy1997ospf, oran1990osi}.\newline
 
-\begin{figure}
+\begin{figure}[ht]
 \captionsetup{width=\linewidth}
 \includegraphics[width=\textwidth, keepaspectratio]{dijkstra}
 \centering
@@ -174,61 +182,62 @@ Dijkstran algoritmia käytetään edelleen muun muassa joissakin tietoliikenneve
 
 \subsection{A*-algoritmi}
 
-Dijkstran algoritmiin perustuva A* toteuttaa niin sanottua paras ensin -tyyliä, jossa jokaisen solmun tai solun kohdalla pyritään ensiksi etenemään suoraan kohti maalia. Jos tiellä on jokin este, algoritmi pyrkii kiertämään sen. Tämä tapahtuu etenemällä valitsemalla tähänastisen reitin viereisistä soluista ne joista arvioidaan olevan lyhyin etäisyys maaliin. Tätä jatketaan kunnes joko päästään kohteeseen, tai selviää että reittiä ei ole. A* poikkeaa siis Dijkstran algoritmista hakeutumalla koko ajan maalin suuntaan, mikä tapahtuu heuristiikkafunktion avulla (algoritmi \ref{alg_astar}:n rivi 13).
+Dijkstran algoritmiin perustuva A* toteuttaa niin sanottua paras ensin -tyyliä, jossa jokaisen solmun tai solun kohdalla pyritään ensiksi etenemään suoraan kohti maalia. Jos tiellä on jokin este, algoritmi pyrkii kiertämään sen. Tämä tapahtuu valitsemalla tähänastisen reitin viereisistä soluista ne, joista arvioidaan olevan lyhyin etäisyys maaliin. Tätä jatketaan kunnes joko päästään kohteeseen, tai selviää että reittiä ei ole. A* poikkeaa siis Dijkstran algoritmista hakeutumalla koko ajan maalin suuntaan, mikä tapahtuu heuristiikkafunktion avulla.\newline
 
-Kaikille algoritmin käsittelemille solmuille lasketaan arvo kaavalla \begin{equation}\label{astarkaava}{f(n) = g(n)+h(n)}\end{equation} missä $g(n)$ on lyhin tunnettu reitti lähtösolmusta solmuun $n$ ja $h(n)$ on heuristinen arvio etäisyydestä maalisolmuun~\cite{sharon15, stout96}. Näin jokaisen läpikäydyn solmun kohdalla tiedetään sille lasketusta arvosta kuinka suoralla reitillä kohteeseen ollaan. Solmuille voidaan myös asettaa edellämainittuun kaavaan lisättävä arvo tekemään siihen siirtymisestä hintavampaa ja näin mallintaa hitaampaa kulkuyhteyttä kahden paikan välillä.
+\noindent Kaikille algoritmin käsittelemille solmuille lasketaan arvo kaavalla \begin{equation}\label{astarkaava}{f(n) = g(n)+h(n),}\end{equation} missä $g(n)$ on lyhin tunnettu reitti lähtösolmusta solmuun $n$ ja $h(n)$ on heuristinen arvio etäisyydestä maalisolmuun~\cite{sharon15, stout96}. Näin jokaisen läpikäydyn solmun kohdalla tiedetään sille lasketusta arvosta kuinka suoralla reitillä kohteeseen ollaan. Solmuille voidaan myös asettaa edellämainittuun kaavaan lisättävä arvo tekemään siihen siirtymisestä hintavampaa ja näin mallintaa hitaampaa kulkuyhteyttä kahden paikan välillä.\newline
 
-Kuvassa \ref{dijkstrab} on ylempänä havainnollistettu Dijkstran algoritmin löytämä reitti yksinkertaisessa ruudukossa. Liikkuminen on rajoitettu niin sanottuun Manhattan -tyyliin, missä sallitut kulkusuunnat ovat neljä pääilmansuuntaa. Esteenä toimivat solmut on väritetty tummanharmaalla ja algoritmin läpikäymät solmut turkoosilla. Jälkimmäisen värisävyt kuvaavat laskennallista etäisyyttä vaaleanpunaiseen lähtösolmuun. Kuten kuvasta nähdään, Dijkstra käy läpi varsin suuren osan kentän solmuista, mutta löytää suorimman reitin violetilla merkittyyn kohteeseen.
+\noindent Kuvassa \ref{dijkstrab} on havainnollistettu Dijkstran algoritmin löytämä reitti yksinkertaisessa ruudukossa. Liikkuminen on rajoitettu niin sanottuun Manhattan -tyyliin, missä sallitut kulkusuunnat ovat neljä pääilmansuuntaa. Esteenä toimivat solmut on väritetty tummanharmaalla ja algoritmin läpikäymät solmut turkoosilla. Punainen neliö edustaa lähtösolmua ja sininen maalisolmua. Värisävyt kuvaavat laskennallista etäisyyttä: mitä vaaleampi väri, sitä suurempi etäisyys. Kuten kuvasta nähdään, Dijkstra käy läpi varsin suuren osan kentän solmuista, mutta löytää suorimman reitin kohteeseen.\newline
 
-Saman kuvan alemmalla puoliskolla nähdään miten A*-algoritmin toimintaperiaate poikkeaa Dijkstran algoritmista: Tutkittuja solmuja on paljon vähemmän heuristiikan ohjatessa läpikäynnin suuntaa. Vaikka reitit hieman poikkeavatkin toisistaan, ne ovat annettujen ennakkoehtojen valossa yhtä pitkiä.
-
-\begin{figure}
-\captionsetup{width=\linewidth}
-\includegraphics[width=\textwidth, keepaspectratio]{dijkstra_astar}
+\begin{figure}[!ht]
+\captionsetup{width=0.62\linewidth}
+\includegraphics[width=0.62\textwidth]{dijkstra_astar}
 \centering
 \caption{Ylempänä reitinhaku Dijkstran algoritmilla ja alempana A*-algoritmilla~\cite{astar_kuva}.}
 \label{dijkstrab}
 \end{figure}
 
+\noindent Saman kuvan alemmalla puoliskolla nähdään miten A*-algoritmin toimintaperiaate poikkeaa Dijkstran algoritmista: Tutkittuja solmuja on paljon vähemmän heuristiikan ohjatessa läpikäynnin suuntaa. Vaikka reitit hieman poikkeavatkin toisistaan, ne ovat annettujen ennakkoehtojen valossa yhtä pitkiä.
 
 
-\begin{algorithm}
-\caption{A*-algoritmin pseudokoodi}
-\label{alg_astar}
-\begin{algorithmic}[1]
-	\Procedure{Astar}{startnode, goalnode}
-	\State initialize the open list
-	\State initialize the closed list
-	\State put the starting node on the open list (you can leave its f at zero)
-	\newline
-	\While{the open list is not empty}
-		\State find the node with the least f on the open list, call it 'q'
-		\State pop q off the open list
-		\State generate q's 8 successors and set their parents to q
-		\For{each successor}
-			\State \textbf{if} successor is the goal \textbf{then}
-			\State \indent stop search
-			\State successor.g = q.g + distance between successor and q
-			\State successor.h = distance from goal to successor
-			\State successor.f = successor.g + successor.h
-			\State \textbf{if} a node with the same position as successor is in the OPEN \indent\indent \: list which has a lower f than successor \textbf{then}
-			\State \indent skip this successor
-			\State \textbf{if} a node with the same position as successor is in the CLOSED \indent\indent \: list which has a lower f than successor \textbf{then}
-			\State \indent skip this successor
-			\State otherwise, add the node to the open list
-		\EndFor
-		\State push q on the closed list
-	\EndWhile
-	\EndProcedure
-\end{algorithmic}
-\end{algorithm}
+
+%\begin{algorithm}[p]
+%\caption{A*-algoritmin pseudokoodi}
+%\label{alg_astar}
+%\begin{algorithmic}[1]
+%	\Procedure{Astar}{startnode, goalnode}
+%	\State initialize the open list
+%	\State initialize the closed list
+%	\State put the starting node on the open list (you can leave its f at zero)
+%	\newline
+%	\While{the open list is not empty}
+%		\State find the node with the least f on the open list, call it 'q'
+%		\State pop q off the open list
+%		\State generate q's 8 successors and set their parents to q
+%		\For{each successor}
+%			\State \textbf{if} successor is the goal \textbf{then}
+%			\State \indent stop search
+%			\State successor.g = q.g + distance between successor and q
+%			\State successor.h = distance from goal to successor
+%			\State successor.f = successor.g + successor.h
+%			\State \textbf{if} a node with the same position as successor is in the OPEN \indent\indent \: list which has a lower f than successor \textbf{then}
+%			\State \indent skip this successor
+%			\State \textbf{if} a node with the same position as successor is in the CLOSED \indent\indent \: list which has a lower f than successor \textbf{then}
+%			\State \indent skip this successor
+%			\State otherwise, add the node to the open list
+%		\EndFor
+%		\State push q on the closed list
+%	\EndWhile
+%	\EndProcedure
+%\end{algorithmic}
+%\end{algorithm}
 
 \subsection{Hierarchical Pathfinding A* (HPA*)}
 
-Tämä algoritmi poikkeaa A*:stä siinä, että reitinhaun apuna käytetään yhtä tai useampaa abstraktiotasoa. HPA*:n kehittäjät A.Botea ja M.Müller käyttävät autovertausta havainnollistamaan algoritmin toimintaa: Kaupungista toiseen ajava autoilija ei ole kiinnostunut kaikista mahdollisista yksityiskohdista matkansa varrella, vaan häntä lähinnä kiinnostaa reitti lähtöpisteestä oikeaan suuntaan vievälle valtatielle, ja kohdekaupunkiin saavuttaessa reitti valtatieltä varsinaiseen määränpäähän. Itse valtatien ajamisen voidaan tässä esimerkissä siis nähdä olevan jokseenkin triviaalia toimintaa, joka ei vaadi sen kummempia toimenpiteitä. Tarkoitus on siis pyrkiä reitinhaun tehokkuuteen eliminoimalla sellaista laskentaa, joka liittyy esteettömien alueiden ylittämiseen~\cite{botea04}.
-Kuvassa ~ref{hpa} nähdään abstraktion vaiheet testiruudukossa. Ruudut $S$ ja $G$ merkitsevät lähtö- ja maaliruutuja, ja mustaksi värjätyt ruudut esteitä. Kohdassa b on alkuperäiseen ruudukkoon merkitty kapeilla mustilla viivoilla alueen jako klustereihin, ja alimpana nähdään vasemman yläneljänneksen klusterit harmaalla merkittyine siirtymineen. Tässä esimerkissä on käytetty raja-arvona kuutta ruutua, jolloin alle raja-arvon levyiset avoimet ruutualueet kahden klusterin välillä saavat yhden siirtymän ja muualla siirtymiksi merkitään avoimien ruutualueiden reunat.
-Kun kentästä on näin muodostettu abstraktiomalli, sitä käytetään reitinhaussa ohjaamaan A*-algoritmia oikeaan suuntaan. Kyseessä on kolmivaiheinen menettely: Ensin absraktiomalliin liitetään aloitus- ja lähtösolmut $S$ ja $G$. Tämän jälkeen abstraktiomallia käydään läpi A*:llä saamaan selville ne klustereita yhdistävät siirtymät, joiden kautta maaliin tulee kulkea. Tämä tuottaa joukon välietappeja, joita käytetään varsinaisen reitin selvittämiseen. Välietapit pitävät huolen siitä, että reitinhaku etenee koko ajan oikeaan suuntaan, jolloin voidaan välttää turhaa työtä.
-Algoritmin toimintaa voidaan tietyissä tilanteissa parantaa lisäämällä abstraktiotasoja, jolloin jokainen uusi abstraktiotaso on edellistä karkeampi esitys kentän topologiasta.
+Tämä algoritmi poikkeaa A*:stä siinä, että reitinhaun apuna käytetään yhtä tai useampaa abstraktiotasoa. HPA*:n~\cite{botea04} kehittäjät Botea ja Müller käyttävät autovertausta havainnollistamaan algoritmin toimintaa: Kaupungista toiseen ajava autoilija ei ole kiinnostunut kaikista mahdollisista yksityiskohdista matkansa varrella, vaan häntä lähinnä kiinnostaa reitti lähtöpisteestä oikeaan suuntaan vievälle valtatielle, ja kohdekaupunkiin saavuttaessa reitti valtatieltä varsinaiseen määränpäähän. Itse valtatien ajamisen voidaan tässä esimerkissä siis nähdä olevan jokseenkin triviaalia toimintaa, joka ei vaadi sen kummempia toimenpiteitä. Tarkoitus on siis pyrkiä reitinhaun tehokkuuteen eliminoimalla sellaista laskentaa, joka liittyy esteettömien alueiden ylittämiseen.\newline
+
+\noindent Kuvassa ~\ref{hpa} nähdään abstraktion vaiheet testiruudukossa. Ruudut $S$ ja $G$ merkitsevät lähtö- ja maaliruutuja, ja mustaksi värjätyt ruudut esteitä. Kohdassa b on alkuperäiseen ruudukkoon merkitty kapeilla mustilla viivoilla alueen jako klustereihin, ja alimpana nähdään vasemman yläneljänneksen klusterit harmaalla merkittyine siirtymineen. Tässä esimerkissä on käytetty raja-arvona kuutta ruutua, jolloin alle raja-arvon levyiset avoimet ruutualueet kahden klusterin välillä saavat yhden siirtymän ja muualla siirtymiksi merkitään avoimien ruutualueiden reunat.\newline
+
+\noindent Kun kentästä on näin muodostettu abstraktiomalli, sitä käytetään reitinhaussa ohjaamaan A*-algoritmia oikeaan suuntaan. Kyseessä on kolmivaiheinen menettely: Ensin absraktiomalliin liitetään aloitus- ja lähtösolmut $S$ ja $G$. Tämän jälkeen abstraktiomallia käydään läpi A*:llä saamaan selville ne klustereita yhdistävät siirtymät, joiden kautta maaliin tulee kulkea. Tämä tuottaa joukon välietappeja, joita käytetään varsinaisen reitin selvittämiseen. Välietapit pitävät huolen siitä, että reitinhaku etenee koko ajan oikeaan suuntaan, jolloin voidaan välttää turhaa työtä. Algoritmin toimintaa voidaan tietyissä tilanteissa parantaa lisäämällä abstraktiotasoja, jolloin jokainen uusi abstraktiotaso on edellistä karkeampi esitys kentän topologiasta.
 
 \begin{figure}
 \captionsetup{width=1\linewidth}
@@ -240,13 +249,13 @@ Algoritmin toimintaa voidaan tietyissä tilanteissa parantaa lisäämällä abst
 
 \section{Rinnakkainen reitinhaku}
 
-Rinnakkaisessa reitinhaussa on yleensä useita, joskus jopa satoja tai tuhansia, eri toimijoita. Tällainen monen toimijan rinnakkainen reitinhaku (multi-agent pathfinding, MAPF) tuo yksittäisen toimijan reitinhakuun verrattuna uusia ongelmia. On muun muassa ratkaistava sallitaanko reittien risteäminen, voiko kaksi tai useampi toimijaa olla samaan aikaan samassa paikassa, tuleeko liikkumista porrastaa odottamalla että reitti edessä vapautuu ja tuleeko toimijan väistää ollessaan toisen toimijan tiellä~\cite{erdem13}. Näiden ongelmien ratkaisemiseen kehitetyistä algoritmeja useimmat hyödyntävät A*-algoritmia jollakin tapaa~\cite{sharon15}.
+Rinnakkaisessa reitinhaussa on yleensä useita, joskus jopa satoja tai tuhansia, eri toimijoita. Tällainen monen toimijan rinnakkainen reitinhaku (multi-agent pathfinding, MAPF) tuo yksittäisen toimijan reitinhakuun verrattuna uusia ongelmia. On muun muassa ratkaistava sallitaanko reittien risteäminen, voiko kaksi tai useampi toimijaa olla samaan aikaan samassa paikassa, tuleeko liikkumista porrastaa odottamalla että reitti edessä vapautuu ja tuleeko toimijan väistää ollessaan toisen toimijan tiellä~\cite{erdem13}. Näiden ongelmien ratkaisemiseen kehitetyistä algoritmeja useimmat hyödyntävät A*-algoritmia jollakin tapaa~\cite{sharon15}.\newline
 
-Mitä enemmän toimijoita tutkittavalla alueella on, sitä oleellisemmaksi muodostuu yhteentörmäyksien ja tahattoman reittien sulkemisen välttäminen. Yksi oleellinen ero lähestymistavoissa on käsitelläänkö toimijoita yhdistettynä (coupled) toimijana, vai toisistaan erotettuina (decoupled) toimijoina. Erotetussa menetelmässä reitit lasketaan jokaiselle toimijalle erikseen ja mahdolliset yhteentörmäykset ratkaistaan valitulla menettelyllä sikäli kuin niitä tapahtuu. Tämä menetelmä on tyypillinen tilanteille, joissa toimijoita on verrattaen paljon~\cite{sharon2013}. Yhdistetyssä menetelmässä kaikkia toimijoita käsitellään sen sijaan kokonaisuutena. Tämä voidaan toteuttaa esimerkiksi varaamalla graafin solmuja toimijoiden käyttöön siksi aikaa kun näiden odotetaan oman reitinhakunsa perusteella niissä olevan. Lukuisten toimijoiden yhtäaikainen huomioonottaminen luonnollisesti lisää ongelman monimutkaisuutta.
+\noindent Mitä enemmän toimijoita tutkittavalla alueella on, sitä oleellisemmaksi muodostuu yhteentörmäyksien ja tahattoman reittien sulkemisen välttäminen. Yksi oleellinen ero lähestymistavoissa on käsitelläänkö toimijoita yhdistettynä (coupled) toimijana, vai toisistaan erotettuina (decoupled) toimijoina. Erotetussa menetelmässä reitit lasketaan jokaiselle toimijalle erikseen ja mahdolliset yhteentörmäykset ratkaistaan valitulla menettelyllä sikäli kuin niitä tapahtuu. Tämä menetelmä on tyypillinen tilanteille, joissa toimijoita on verrattaen paljon~\cite{sharon2013}. Yhdistetyssä menetelmässä kaikkia toimijoita käsitellään sen sijaan kokonaisuutena. Tämä voidaan toteuttaa esimerkiksi varaamalla graafin solmuja toimijoiden käyttöön siksi aikaa kun näiden odotetaan oman reitinhakunsa perusteella niissä olevan. Lukuisten toimijoiden yhtäaikainen huomioonottaminen luonnollisesti lisää ongelman monimutkaisuutta.\newline
 
-Yksi graafien ominaisuuksia on \textit{haarautuvuus} (branching). Tällä tarkoitetaan keskimääräistä lukumäärään naapurisolmuja, joihin jostakin graafin solmusta voidaan liikkua. Jos meillä on graafi, jonka haarautuvuus on $b$, niin erotetussa menetelmässä jokaisella toimijalla on $O(b+1)$ mahdollista liikettä, eli siirtymät toisiin solmuihin ja paikallaan odottaminen. Yhdistetyssä menetelmässä on sen sijaan joka askeleella otettava myös huomioon $k$ toimijaa, jolloin mahdollisia liikkeitä on $O(b+1)^k$. Tämä hidastaa reittien laskemista~\cite{sharon2013}.
+\noindent Yksi graafien ominaisuuksia on \textit{haarautuvuus} (branching). Tällä tarkoitetaan keskimääräistä lukumäärään naapurisolmuja, joihin jostakin graafin solmusta voidaan liikkua. Jos meillä on graafi, jonka haarautuvuus on $b$, niin erotetussa menetelmässä jokaisella toimijalla on $O(b)$ mahdollista liikettä, eli siirtymät toisiin solmuihin ja paikallaan odottaminen. Yhdistetyssä menetelmässä on sen sijaan joka askeleella otettava myös huomioon $k$ toimijaa, jolloin mahdollisia liikkeitä on $O((b+1)^k)$. Tämä hidastaa reittien laskemista~\cite{sharon2013}.\newline
 
-Kuten edellä todettiin, useimmat rinnakkaisen reitinhaun ratkaisemiseen kehitetyt menetelmät ovat A*-pohjaisia. A*-agoritmi vaatii kuitenkin verrattaen paljon resursseja käyttöönsä, mikäli kyse on laajemmasta reitinhakuongelmasta. Siksi onkin kehitetty useita erilaisia lähestymistapoja, joilla pyritään pitämään läpikäytävien solmujen määrä, ja siten laskentaresurssien tarve, mahdollisimman pienenä.
+\noindent Kuten edellä todettiin, useimmat rinnakkaisen reitinhaun ratkaisemiseen kehitetyt menetelmät ovat A*-pohjaisia. A*-agoritmi vaatii kuitenkin verrattaen paljon resursseja käyttöönsä, mikäli kyse on laajemmasta reitinhakuongelmasta. Siksi onkin kehitetty useita erilaisia lähestymistapoja, joilla pyritään pitämään läpikäytävien solmujen määrä, ja siten laskentaresurssien tarve, mahdollisimman pienenä.
 
 
 
@@ -259,55 +268,56 @@ Kuten edellä todettiin, useimmat rinnakkaisen reitinhaun ratkaisemiseen kehitet
 %Enhanced partial expansion A* (EPEA*)
 \subsection{Local Repair A* (LRA*)}
 
-LRA* on yleistermi joukolle A*-pohjaisia algoritmeja, jotka jakavat saman toimintaperiaatteen: Jokainen toimija etsii reitin A*:lla ja seuraa sitä siihen asti kunnes siirtyminen seuraavaan solmuun saisi aikaan yhteentörmäyksen jonkun toisen toimijan kanssa, eli solmu johon pitäisi siirtyä on varattu. Tällöin tehdään uusi A*-haku ja jatketaan niin kauan kunnes on tultu maaliin.
+LRA*~\cite{silver05} on yleistermi joukolle A*-pohjaisia algoritmeja, jotka jakavat saman toimintaperiaatteen: Jokainen toimija etsii reitin A*:lla ja seuraa sitä siihen asti kunnes siirtyminen seuraavaan solmuun saisi aikaan yhteentörmäyksen jonkun toisen toimijan kanssa, eli solmu johon pitäisi siirtyä on varattu. Tällöin tehdään uusi A*-haku ja jatketaan niin kauan kunnes on tultu maaliin. Suoritusjärjestys voi olla erikseen määritelty, tai täysin satunnainen.\newline
 
-Syklit ovat tässä menetelmässä sekä mahdollisia että yleisiä, joten ongelmaa on pyritty ratkaisemaan lisäämällä niin kutsuttua kohinaa etäisyysheuristiikkaan joka kerta kun yhteentörmäys havaitaan~\cite{silver05}. Jos siis jatkuvasti kohdataan esteitä jossakin solmussa tai jollakin alueella, niin algoritmin laskeman kustannuksen sinne etenemisestä pitäisi ennenpitkää nousta niin suureksi, että toimija hakeutuu ongelma-alueen ympäri tai etsii kokonaan uuden reitin.
+\noindent Syklit ovat tässä menetelmässä sekä mahdollisia että yleisiä, joten ongelmaa on pyritty ratkaisemaan lisäämällä niin kutsuttua kohinaa etäisyysheuristiikkaan joka kerta kun yhteentörmäys havaitaan~\cite{silver05}. Jos siis jatkuvasti kohdataan esteitä jossakin solmussa tai jollakin alueella, niin algoritmin laskeman kustannuksen sinne etenemisestä pitäisi ennenpitkää nousta niin suureksi, että toimija hakeutuu ongelma-alueen ympäri tai etsii kokonaan uuden reitin.\newline
 
-Tällainen lähestymistapa johtaa ruuhkatilanteissa helposti oudolta näyttävään poukkoiluun, ja sen myötä prosessoriajan hävikkiin laskettaessa reitti jokaisen yhteentörmäyksen yhteydessä uudestaan.
+\noindent Tällainen lähestymistapa johtaa ruuhkatilanteissa helposti oudolta näyttävään poukkoiluun, ja sen myötä prosessoriajan hävikkiin laskettaessa reitti jokaisen yhteentörmäyksen yhteydessä uudestaan.
 
 
 \subsection{Cooperative A* (CA*)}
 
-CA* pyrkii estämään yhteentörmäykset ennalta ottamalla aikaulottuvuuden huomioon reittejä suunniteltaessa. Jokaiselle toimijalle lasketaan reitti A*-algoritmilla ja suunnitellun reitin solut merkitään taulukkoon, esimerkiksi kolmiulotteiseen hajautustauluun, jossa kaksi ensimmäistä alkiota merkitsevät x- ja y-koordinaatteja, ja kolmas alkio aikaa milloin kyseinen solmu on tämän toimijan käytössä. Nyt seuraavien toimijoiden reittejä laskettaessa voidaan verrata suunniteltuja askeleita edellämainittuun taulukkoon ja odottamalla havaituissa törmäystilanteissa halutun reittisolmun vapautumista.
+CA*~\cite{silver05} pyrkii estämään yhteentörmäykset ennalta ottamalla aikaulottuvuuden huomioon reittejä suunniteltaessa. Jokaiselle toimijalle lasketaan reitti A*-algoritmilla ja suunnitellun reitin solut merkitään taulukkoon, esimerkiksi kolmiulotteiseen hajautustauluun, jossa kaksi ensimmäistä alkiota merkitsevät x- ja y-koordinaatteja, ja kolmas alkio aikaa milloin kyseinen solmu on tämän toimijan käytössä. Nyt seuraavien toimijoiden reittejä laskettaessa voidaan verrata suunniteltuja askeleita edellämainittuun taulukkoon ja odottamalla havaituissa törmäystilanteissa halutun reittisolmun vapautumista.\newline
 
-Tämän algoritmin heikkoutena on kyvyttömyys ratkaista joitakin verrattaen yksinkertaisia tilanteita. Kuvassa \ref{meeting_conflict} nähdään tilanne, missä toimijat S1 ja S2 pyrkivät vastaavasti maaleihin G1 ja G2. Intuitiivisesti nähdään, että jommankumman toimijan olisi mahdollista joko väistää sivulle tai nämä voisivat vaihtaa paikkoja kohdatessaan ja jatkaa sitten määränpäihinsä. Perusmuotoinen CA* ei kuitenkaan pysty tällaiseen ratkaisuun, sillä algoritmissa ei ole tällaista toiminnallisuutta.\newline
+\noindent Tämän algoritmin heikkoutena on kyvyttömyys ratkaista joitakin verrattaen yksinkertaisia tilanteita. Kuvassa \ref{meeting_conflict} nähdään tilanne, missä toimijat S1 ja S2 pyrkivät vastaavasti maaleihin G1 ja G2. Intuitiivisesti nähdään, että jommankumman toimijan olisi mahdollista joko väistää sivulle tai nämä voisivat vaihtaa paikkoja kohdatessaan ja jatkaa sitten määränpäihinsä. Perusmuotoinen CA* ei kuitenkaan pysty tällaiseen ratkaisuun, sillä algoritmissa ei ole tällaista toiminnallisuutta.\newline
 
 \begin{figure}
 \captionsetup{width=.65\linewidth}
 \includegraphics{meeting_conflict}
 \centering
-\caption{Esimerkki kohtaamis-ongelmasta, jossa toimijat S1 ja S2 voivat päästä maalisolmuihin G1 ja G2 vain jos jompikumpi väistää sivulle.}
+\caption{Esimerkki kohtaamis-ongelmasta, jossa toimijat S1 ja S2 voivat päästä maalisolmuihin G1 ja G2 vain jos jompikumpi väistää sivulle~\cite{silver05}.}
 \label{meeting_conflict}
 \end{figure}
 
 \subsection{Hierarchical Cooperative A* (HCA*)}
 
-R.C.Holte ja kumppanit esittelivät vuonna 1996 hierarkkisen A*-reitinetsintä\-algoritmin HA*~\cite{holte96} ratkaisemaan CA*-algoritmin ongelmia. Siinä varsinaisen topologian rinnalla käytetään toista, abstraktia, topologiaa auttamaan A*-agoritmia löytämään kohteeseen. Alkuperäisen topologian solmut ryhmitetään halutun abstraktioetäisyyden perusteella isommiksi abstraktiosolmuiksi, ja tätä jatketaan rekursiivisesti niin kauan, kunnes koko topologiasta on muodostettu yksittäinen abstraktiosolmu. Varsinaisen topologian rinnalla on nyt siis monitasoinen abstraktiohierarkia, jonka alimmalla tasolla on alkuperäinen topologia. Tätä monitasoista hierarkiaa käytetään heuristiikan apuna ja liikkumalla siinä tasolta toiselle sen mukaan miten tarkkaa jakoa esimerkiksi esteiden ympärillä tarvitaan, ja käyttämällä sen antamia etäisyyksiä reitinhakualgoritmin apuna. Etäisyydet kohteeseen lasketaan vain tarvittaessa~\cite{silver05}. [aukaisu]\newline
+R.C.Holte ja kumppanit esittelivät vuonna 1996 hierarkkisen A*-reitinetsintäalgoritmin HA*~\cite{holte96} ratkaisemaan CA*-algoritmin ongelmia. Siinä varsinaisen topologian rinnalla käytetään toista, abstraktia, topologiaa auttamaan A*-agoritmia löytämään kohteeseen. Alkuperäisen topologian solmut ryhmitetään halutun abstraktioetäisyyden perusteella isommiksi abstraktiosolmuiksi, ja tätä jatketaan rekursiivisesti niin kauan, kunnes koko topologiasta on muodostettu yksittäinen abstraktiosolmu. Varsinaisen topologian rinnalla on nyt siis monitasoinen abstraktiohierarkia, jonka alimmalla tasolla on alkuperäinen topologia. Tätä monitasoista hierarkiaa käytetään heuristiikan apuna ja liikkumalla siinä tasolta toiselle sen mukaan miten tarkkaa jakoa esimerkiksi esteiden ympärillä tarvitaan, ja käyttämällä sen antamia etäisyyksiä reitinhakualgoritmin apuna. Etäisyydet kohteeseen lasketaan vain tarvittaessa~\cite{silver05}. [aukaisu]\newline
 
-HCA* eli hierarkkinen yhteistoiminnallinen A*-reitinetsintäalgoritmi puolestaan käyttää yksinkertaistettua hierarkiaa, joka koostuu vain yhdestä topologian kaksiulotteisesta abstraktiosta jättäen huomiotta niin aikaulottuvuuden, solmujen varaustaulun, kuin muut toimijat. Kuvassa 2 nähdään esimerkki topologian abstraktiosta, missä vasemmalla oleva ruudukko on mallinnettu graafiksi jakamalla se isommiksi abstraktiosolmuiksi (siniset kehykset). Kirjaimet S ja G viittaavat lähtö- ja maalisolmuihin. Oikeanpuoleisessa kuvaan on puolestaan merkitty punaisella jokaisen abstraktiosolmun sisällä olevat solmut ja niitä yhdistävät kaaret. Kaaren vierellä oleva luku tarkoittaa kaaren painoa, eli kuinka suuri hinta kaaren kulkemisella on.\newline
+\noindent HCA* eli hierarkkinen yhteistoiminnallinen A*-reitinetsintäalgoritmi puolestaan käyttää yksinkertaistettua hierarkiaa, joka koostuu vain yhdestä topologian kaksiulotteisesta abstraktiosta jättäen huomiotta niin aikaulottuvuuden, solmujen varaustaulun, kuin muut toimijat. Kuvassa 2 nähdään esimerkki topologian abstraktiosta, missä vasemmalla oleva ruudukko on mallinnettu graafiksi jakamalla se isommiksi abstraktiosolmuiksi (siniset kehykset). Kirjaimet S ja G viittaavat lähtö- ja maalisolmuihin. Oikeanpuoleisessa kuvaan on puolestaan merkitty punaisella jokaisen abstraktiosolmun sisällä olevat solmut ja niitä yhdistävät kaaret. Kaaren vierellä oleva luku tarkoittaa kaaren painoa, eli kuinka suuri hinta kaaren kulkemisella on.\newline
 
-Kun reitti on laskettava uudelleen esimerkiksi jonkun toisen toimijan tullessa eteen, pyritään säästämään resursseja käyttämällä käänteistä jatkettavaa A*-hakua RRA* (Reverse Resumable A*) abstraktiotasolla. Siinä missä alkuperäinen reitti haettiin lähtöpisteestä maaliin, RRA* etsii reitin maalista haluttuun solmuun, kuten toimijaa lähimpään abstraktiotason solmuun~\cite{silver05}. Mikäli tässä vaiheessa optimaalisen reitin varrella on muita toimijoita, tulee lasketusta reitistä näiden väistämisen vuoksi luonnollisesti pidempi, aivan kuten alkuperäisen reitinhaunkin suhteen.\newline
+\noindent Kun reitti on laskettava uudelleen esimerkiksi jonkun toisen toimijan tullessa eteen, pyritään säästämään resursseja käyttämällä käänteistä jatkettavaa A*-hakua RRA* (Reverse Resumable A*) abstraktiotasolla. Siinä missä alkuperäinen reitti haettiin lähtöpisteestä maaliin, RRA* etsii reitin maalista haluttuun solmuun, kuten toimijaa lähimpään abstraktiotason solmuun~\cite{silver05}. Mikäli tässä vaiheessa optimaalisen reitin varrella on muita toimijoita, tulee lasketusta reitistä näiden väistämisen vuoksi luonnollisesti pidempi, aivan kuten alkuperäisen reitinhaunkin suhteen.\newline
 
-Ongelmana tämän algoritmin käytössä on reitinhaun lopettamisen määritteleminen, sillä vaikka jokin toimija olisi jo tullut päämääräänsä, sen täytyy mahdollisesti vielä väistää jotain toista toimijaa ja hakeutua tämän jälkeen uudestaan maaliin~\cite{botea13}. Niinikään toimijoiden vuorojärjestyksellä on väliä: Staattinen vuorottelu voi johtaa siihen, ettei reittiä maaliin koskaan löydetä joidenkin toimijoiden sulkiessa toisiltaan tien. Tämä voidaan välttää antamalla toimijoille erilaiset prioriteetit jo alun alkaen, tai sitten sitten korkeampi prioriteetti voidaan antaa halutuille toimijoille vuorotellen lyhyeksi aikaa~\cite{silver05}. Tässä, kuten aiemmissakin yhteistoiminnallisissa reitinhakualgoritmeissa, on resurssien käytön suhteen ongelmana potentiaalisesti turhaan tehty työ.\newline
+\noindent Ongelmana tämän algoritmin käytössä on reitinhaun lopettamisen määritteleminen, sillä vaikka jokin toimija olisi jo tullut päämääräänsä, sen täytyy mahdollisesti vielä väistää jotain toista toimijaa ja hakeutua tämän jälkeen uudestaan maaliin~\cite{botea13}. Niinikään toimijoiden vuorojärjestyksellä on väliä: Staattinen vuorottelu voi johtaa siihen, ettei reittiä maaliin koskaan löydetä joidenkin toimijoiden sulkiessa toisiltaan tien. Tämä voidaan välttää antamalla toimijoille erilaiset prioriteetit jo alun alkaen, tai sitten sitten korkeampi prioriteetti voidaan antaa halutuille toimijoille vuorotellen lyhyeksi aikaa~\cite{silver05}. Tässä, kuten aiemmissakin yhteistoiminnallisissa reitinhakualgoritmeissa, on resurssien käytön suhteen ongelmana potentiaalisesti turhaan tehty työ.\newline
 
 \begin{figure}
-\captionsetup{width=.65\linewidth}
+\captionsetup{width=0.95\linewidth}
 \includegraphics[scale=0.75]{grid_hierarchy}
 \centering
-\caption{Vasemmalla olevasta ruudukosta on muodostettu hierarkiamallin mukainen abstraktio.}
+\caption{Vasemmalla olevasta ruudukosta on muodostettu hierarkiamallin mukainen abstraktio~\cite{duc2008hierarchical}.}
 \label{grid_hierarchy}
 \end{figure}
 
 \subsection{Windowed Hierarchical Cooperative A* (WHCA*)}
 
-WHCA* eroaa HCA*:sta siinä, että abstraktiotasolla reitti lasketaan maaliin ast, mutta konkreettisen topologian tasolla reitinhaku on rajoitettu johonkin ennaltamääriteltyyn syvyyteen~\cite{silver05, botea13}. Kun reittiä on kuljettu johonkin ennaltamääriteltyyn raja-arvoon asti, esimerkiksi puolet aiemmin lasketusta reitistä, lasketaan uusi osittainen reitti ja niin edelleen. ”Windowed” tarkoittaa tässä siis aikaikkunaa tai kehystä, mihin asti konkreettinen reitti on nähtävillä ja mitä siirretään aina tarpeen mukaan. Resurssien käyttöä voidaan myös tasata antamalla toimijoille erikokoiset ikkunat, jolloin taakka reittien laskemisesta saadaan jakautumaan tasaisemmin. Kuten HCA*, myös WHCA* hyödyntää käänteistä jatkettavaa A*-hakua eli RRA*:ta. Näin voidaan hyödyntää edellisen ikkunan aikana tehtyä hakua, mikä toisaalta tarkoittaa toimijakohtaista kirjanpitoa läpikäydyistä solmuista.
-Koska yksittäisiä toimijoita WHCA*-algoritmissa ei johdeta keskitetysti, vaan ne pyrkivät itsenäisesti etsimään lyhintä reittiä maaliin, tuloksena voi olla tarpeetonta törmäilyä tilanteessa missä muuten olisi runsaasti tilaa lähettyvillä~\cite{sharon15}.
+WHCA* eroaa HCA*:sta siinä, että abstraktiotasolla reitti lasketaan maaliin ast, mutta konkreettisen topologian tasolla reitinhaku on rajoitettu johonkin ennaltamääriteltyyn syvyyteen~\cite{silver05, botea13}. Kun reittiä on kuljettu johonkin ennaltamääriteltyyn raja-arvoon asti, esimerkiksi puolet aiemmin lasketusta reitistä, lasketaan uusi osittainen reitti ja niin edelleen. ”Windowed” tarkoittaa tässä siis aikaikkunaa tai kehystä, mihin asti konkreettinen reitti on nähtävillä ja mitä siirretään aina tarpeen mukaan. Resurssien käyttöä voidaan myös tasata antamalla toimijoille erikokoiset ikkunat, jolloin taakka reittien laskemisesta saadaan jakautumaan tasaisemmin. Kuten HCA*, myös WHCA* hyödyntää käänteistä jatkettavaa A*-hakua eli RRA*:ta. Näin voidaan hyödyntää edellisen ikkunan aikana tehtyä hakua, mikä toisaalta tarkoittaa toimijakohtaista kirjanpitoa läpikäydyistä solmuista.\newline
+
+\noindent Koska yksittäisiä toimijoita WHCA*-algoritmissa ei johdeta keskitetysti, vaan ne pyrkivät itsenäisesti etsimään lyhintä reittiä maaliin, tuloksena voi olla tarpeetonta törmäilyä tilanteessa missä muuten olisi runsaasti tilaa lähettyvillä~\cite{sharon15}.
 
 \subsection{Conflict-Based Search (CBS)}
 
-Rinnakkaisen reitinhaun optimoimiseen pyrkivä CBS-algoritmi~\cite{sharon15} käyttää kaksitasoista lähestymistapaa, missä ensin käydään läpi ylemmän tason binääristä rajoituspuuta (constraint tree). Rajoituspuun jokaisessa solmussa on joukko rajoitteita (tieto siitä milloin joku topologian solmu on jonkun toimijan varaama), jotka kuuluvat jollekin yksittäiselle toimijalle. Toiseksi rajoituspuun solmuihin on myös talletettu joukko alemmalta tasolta saatuja reittejä, yksi jokaista toimijaa kohti, joiden tulee olla vapaita tiedetyistä yhteentörmäyksistä. Kolmanneksi niissä on myös yhteenlaskettu solmun reittikustannus, joka koostuu yksittäisen toimijan koko siihenastisen polun kustannuksesta. Rajoituspuu on järjestetty reittikustannuksen mukaan.
+Rinnakkaisen reitinhaun optimoimiseen pyrkivä CBS-algoritmi~\cite{sharon15} käyttää kaksitasoista lähestymistapaa, missä ensin käydään läpi ylemmän tason binääristä rajoituspuuta (constraint tree). Rajoituspuun jokaisessa solmussa on joukko rajoitteita (tieto siitä milloin joku topologian solmu on jonkun toimijan varaama), jotka kuuluvat jollekin yksittäiselle toimijalle. Toiseksi rajoituspuun solmuihin on myös talletettu joukko alemmalta tasolta saatuja reittejä, yksi jokaista toimijaa kohti, joiden tulee olla vapaita tiedetyistä yhteentörmäyksistä. Kolmanneksi niissä on myös yhteenlaskettu solmun reittikustannus, joka koostuu yksittäisen toimijan koko siihenastisen polun kustannuksesta. Rajoituspuu on järjestetty reittikustannuksen mukaan.\newline
 
-Alemmalla tasolla puolestaan voidaan käyttää tavanomaista yhden toimijan reitinhakualgoritmia kuten A* hyödyntäen samalla ylemmältä tasolta saatua tietoa siitä, missä ja milloin on odotettavissa yhteentörmäys jonkun toisen toimijan kanssa. Mikäli kaikesta huolimatta alemmalla tasolla havaitaan yhteentörmäyksiä, päivitetään ylemmän tason rajoituspuuta vastaavasti laajentamalla rajoituspuuta lisäämällä siihen solmuja. Tämän jälkeen tehdään uusi alemman tason haku ja toistetaan edellinen vaihe tarvittaessa.
+\noindent Alemmalla tasolla puolestaan voidaan käyttää tavanomaista yhden toimijan reitinhakualgoritmia kuten A* hyödyntäen samalla ylemmältä tasolta saatua tietoa siitä, missä ja milloin on odotettavissa yhteentörmäys jonkun toisen toimijan kanssa. Mikäli kaikesta huolimatta alemmalla tasolla havaitaan yhteentörmäyksiä, päivitetään ylemmän tason rajoituspuuta lisäämällä siihen solmuja löysemmin kriteerein. Tämän jälkeen jokaisen solmun kohdalla tehdään uusi alemman tason haku ja toistetaan menettely tarvittaessa.
 \newline
 
 \begin{algorithm}
@@ -354,13 +364,13 @@ Alemmalla tasolla puolestaan voidaan käyttää tavanomaista yhden toimijan reit
 
 \subsection{Increasing Cost Tree Search}
 
-Vuonna 2012 julkaistu ICTS-algoritmi on kaksitasoista hierarkiaa hyödyntävä algoritmi~\cite{sharon2013}. Hierarkian ylemmällä tasolla käydään läpi puuta nimeltä \textit{increasing cost tree}. Se muodostuu solmuista, joista jokaisessa oleva taulukko $[C_1,...,C_k]$ edustaa kaikkia niitä mahdollisia reittiratkaisuja, missä toimijoiden reittien hinta on täsmälleen taulukkoon niitä vastaaville paikoille generoitu luku. Toisin sanoen toimijan $a_i$ reittikustannus löytyy taulukon kohdasta $C_i$.
+Vuonna 2012 julkaistu ICTS-algoritmi on kaksitasoista hierarkiaa hyödyntävä algoritmi~\cite{sharon2013}. Hierarkian ylemmällä tasolla käydään läpi puuta nimeltä \textit{increasing cost tree}. Se muodostuu solmuista, joista jokaisessa oleva taulukko $[C_1,...,C_k]$ edustaa kaikkia niitä mahdollisia reittiratkaisuja, missä toimijoiden reittien hinta on täsmälleen taulukkoon niitä vastaaville paikoille generoitu luku. Toisin sanoen toimijan $a_i$ reittikustannus löytyy taulukon kohdasta $C_i$.\newline
 
-Kuvassa \ref{ict} on havainnollistettu tällaisen puun rakennetta kolmen toimijan tapauksessa. Jokaisessa puun solmussa on kolme lukua, jotka siis edustavat näiden kolmen toimijan etäisyyttä maaliin solmussa pidettyjen reittiratkaisujen osalta. Juurisolmun lukemat ovat toimijoiden suorimmat mahdolliset etäisyydet maaliin, eli tilanne missä maaleihin voitaisiin kulkea välittämättä lainkaan muista toimijoista. Tässä esimerkissä jokaisen kolmesta toimijasta laskennallinen etäisyys maaliin on 10. Juurisolmulle ja jokaiselle solmulle sittemmin lisätään toimijoiden määrää vastaava määrä lapsisolmuja. Näihin lapsisolmuihin puolestaan lisätään siinä oleville toimijoille jokaiselle vuorollaan jokin lukuarvo (tässä 1) edustamaan pidempää reittiä. Toisen rivin ensimmäisessä solmussa on siis ensimmäinen toimija saanut arvon 11, toisessa solmussa keskimmäinen ja kolmannessa viimeinen.
+\noindent Kuvassa \ref{ict} on havainnollistettu tällaisen puun rakennetta kolmen toimijan tapauksessa. Jokaisessa puun solmussa on kolme lukua, jotka siis edustavat näiden kolmen toimijan etäisyyttä maaliin solmussa pidettyjen reittiratkaisujen osalta. Juurisolmun lukemat ovat toimijoiden suorimmat mahdolliset etäisyydet maaliin, eli tilanne missä maaleihin voitaisiin kulkea välittämättä lainkaan muista toimijoista. Tässä esimerkissä jokaisen kolmesta toimijasta laskennallinen etäisyys maaliin on 10. Juurisolmulle ja jokaiselle solmulle sittemmin lisätään toimijoiden määrää vastaava määrä lapsisolmuja. Näihin lapsisolmuihin puolestaan lisätään siinä oleville toimijoille jokaiselle vuorollaan jokin lukuarvo (tässä 1) edustamaan pidempää reittiä. Toisen rivin ensimmäisessä solmussa on siis ensimmäinen toimija saanut arvon 11, toisessa solmussa keskimmäinen ja kolmannessa viimeinen.\newline
 
-ICT-puuta läpikäytäessä jokaisen solmun kohdalla kutsutaan alemman tason rutiinia tarkistamaan josko solmun määrittämä reittiyhdistelmä on löytynyt. Eli aluksi kokeillaan onko juurisolmun etäisyyksillä löydettävissä reitit kaikille toimijoille ja jos ei, siirrytään puussa alaspäin. Mitä alemmas puussa siis mennään, sitä suurempi on solmuissa olevien reittien hintojen summa.  Puuta käydään läpi leveyssuuntaisella haulla juuresta lähtien, joten ensimmäinen löydetty toteutettavissa oleva reittiratkaisu on myös väistämättä halvin.
+\noindent ICT-puuta läpikäytäessä jokaisen solmun kohdalla kutsutaan alemman tason rutiinia tarkistamaan josko solmun määrittämä reittiyhdistelmä on löytynyt. Eli aluksi kokeillaan onko juurisolmun etäisyyksillä löydettävissä reitit kaikille toimijoille, mutta jos havaitaan törmäyksiä, siirrytään puussa alaspäin. Mitä alemmas puussa siis mennään, sitä suurempi on solmuissa olevien reittien hintojen summa.  Puuta käydään läpi leveyssuuntaisella haulla juuresta lähtien, joten ensimmäinen löydetty toteutettavissa oleva reittiratkaisu on myös väistämättä halvin.\newline
 
-Jokaista ICT-solmua tutkittaessa suoritetaan siis reittivertailu alemmalla hierarkiatasolla. Tämä tapahtuu käymällä läpi kunkin toimijan kaikki sellaiset reitit, joiden enimmäishinta on kyseiselle toimijalle ICT-solmussa asetettu arvo, ja vertailemalla näitä keskenään kunnes tuloksena on joukko ristiriidattomia reittejä. Koska eri reittejä voi olla hyvinkin suuri määrä, niiden käsittelemiseen on kehitetty oma algoritminsa, \textit{multi-value decision diagram} (MDD). Varsinaisten reittien muodostamiseen konkreettisessa topologiassa voidaan käyttää sopivaksi katsottua yhden toimijan reitinhakualgoritmia.
+\noindent Jokaista ICT-solmua tutkittaessa suoritetaan siis reittivertailu alemmalla hierarkiatasolla. Tämä tapahtuu käymällä läpi kunkin toimijan kaikki sellaiset reitit, joiden enimmäishinta on kyseiselle toimijalle ICT-solmussa asetettu arvo, ja vertailemalla näitä keskenään kunnes tuloksena on joukko ristiriidattomia reittejä. Koska eri reittejä voi olla hyvinkin suuri määrä, niiden käsittelemiseen on kehitetty oma algoritminsa, \textit{multi-value decision diagram} (MDD). Varsinaisten reittien muodostamiseen konkreettisessa topologiassa voidaan käyttää sopivaksi katsottua yhden toimijan reitinhakualgoritmia.
 
 \begin{figure}
 \captionsetup{width=.65\linewidth}
@@ -394,9 +404,10 @@ Jokaista ICT-solmua tutkittaessa suoritetaan siis reittivertailu alemmalla hiera
 
 \subsection{Tree-based agent swapping strategy (TASS)}
 
-Tämä vuoden 2011 algoritmi hyödyntää graafien sijaan puurakenteita ja olemassaolevien graafien konvertoimiseen onkin kehittäjien toimesta luotu \textit{Graph-to-Tree Decomposition (GTD)}-algoritmeja. TASS on kehitetty erityisesti tilanteisiin, joissa vapaata liikkumatilaa on hyvin vähän.
-TASS:n toimintaperiaatteena on siis topologian käsittely puuna, jossa siirtymät solmujen välillä on sallittu molempiin suuntiin. Puiden rakenteesta johtuen risteyksiä (tai haaroja) käytetään hyväksi toimijoiden uudelleenjärjestämisessä silloin, kun toimijat ovat toistensa tiellä. Tämä on havainnollistettu kuvassa \ref{tass}. Alkiot $u$ ja $v$ eivät voi tässä algoritmissa vaihtaa paikkaa päikseen, vaan ne on uudelleenjärjestettävä tekemällä tilaa lähimpään risteyssolmuun ja sen naapureihin, siirrettävä alkiot risteyksen yli uudelleenjärjestämistä varten, ja sitten palautettava lähtötilanne muilta osin ennalleen.
-Suurempi haarautuvuus nopeuttaa algoritmin toimintaa~\cite{khorshid2011polynomial}.
+Tämä vuoden 2011 algoritmi hyödyntää puurakenteita ja olemassaolevien ei-puumaisten graafien konvertoimiseen onkin kehittäjien toimesta luotu \textit{Graph-to-Tree Decomposition (GTD)} -algoritmeja. TASS on kehitetty erityisesti tilanteisiin, joissa vapaata liikkumatilaa on hyvin vähän.\newline
+
+\noindent TASS:n toimintaperiaatteena on siis topologian käsittely puuna, jossa siirtymät solmujen välillä on sallittu molempiin suuntiin. Puiden rakenteesta johtuen risteyksiä (tai haaroja) käytetään hyväksi toimijoiden uudelleenjärjestämisessä silloin, kun toimijat ovat toistensa tiellä. Tämä on havainnollistettu kuvassa \ref{tass}, missä $u$ ja $v$ ovat vierekkäin, eikä välittömässä läheisyydessä ole vapaita solmuja joihin väistää. Tässä algoritmissa paikkoja ei voi vaihtaa keskenään, vaan ne on uudelleenjärjestettävä tekemällä tilaa lähimpään risteyssolmuun ja sen naapureihin, siirrettävä alkiot risteyksen yli uudelleenjärjestämistä varten, ja sitten palautettava lähtötilanne muilta osin ennalleen.
+Suurempi haarautuvuus nopeuttaa algoritmin toimintaa, koska tämä keskimäärin lyhentää etäisyyttä lähimpään sellaiseen paikkaan puussa, missä uudelleenjärjestely voidaan suorittaa~\cite{khorshid2011polynomial}.
 
 
 \begin{figure}
@@ -407,15 +418,15 @@ Suurempi haarautuvuus nopeuttaa algoritmin toimintaa~\cite{khorshid2011polynomia
 \label{tass}
 \end{figure}
 
-\subsection{Push and Swap}
+\subsection{Push and Swap ja Push and Rotate}
 
-Push and Swap edustaa rinnakkaisen reitinhaun uutta sukupolvea (2011) ja on verrattaen yksinkertainen toimintaperiaatteeltaan. Nimensä mukaisesti algoritmissa on kaksi keskeistä operaatiota, \textit{Push} ja \textit{Swap}, sekä kaksi apuoperaatiota, \textit{Clear} ja \textit{Resolve}. Toimijoiden suoritusjärjestys määräytyy jonkin ennaltamääritellyn prioriteettijonon perusteella~\cite{luna2011push}.
+Push and Swap edustaa rinnakkaisen reitinhaun uutta sukupolvea (2011) ja on verrattaen yksinkertainen toimintaperiaatteeltaan. Nimensä mukaisesti algoritmissa on kaksi keskeistä operaatiota, \textit{Push} ja \textit{Swap}, sekä kaksi apuoperaatiota, \textit{Clear} ja \textit{Resolve}. Toimijoiden suoritusjärjestys määräytyy jonkin ennaltamääritellyn prioriteettijonon perusteella~\cite{luna2011push}.\newline
 
-Push-operaatio liikuttaa toimijaa $r$ kohti maalia. Mikäli maaliin ei päästä jonkun toisen toimijan $s$ tukkiessa tien ja ollessa alempi prioriteetiltaan, Push yrittää työntää tiellä olevat toimijat pois edestä vapaisiin solmuihin ja jatkaa sitten maaliin. Mikäli vapaata tilaa ei ole, työntäminen vaatisi $r$:n itsensä siirtymistä, työnnettävällä toimijalla on korkeampi prioriteetti, tai pitäisi työntää jo omiin maaleihinsa löytäneitä toimijoita sivuun, otetaan Swap-operaatio käyttöön.
+\noindent Push-operaatio liikuttaa toimijaa $r$ kohti maalia. Mikäli maaliin ei päästä jonkun toisen toimijan $s$ tukkiessa tien ja ollessa alempi prioriteetiltaan, Push yrittää työntää tiellä olevat toimijat pois edestä vapaisiin solmuihin ja jatkaa sitten maaliin. Mikäli vapaata tilaa ei ole, työntäminen vaatisi $r$:n itsensä siirtymistä, työnnettävällä toimijalla on korkeampi prioriteetti, tai pitäisi työntää jo omiin maaleihinsa löytäneitä toimijoita sivuun, otetaan Swap-operaatio käyttöön.\newline
 
-Swap siirtää sekä $r$:n että $s$:n lähimpään sellaiseen paikkaan graafissa, jossa on riittävästi tilaa paikkojen vaihtamiseen, kuten nähdään kuvassa \ref{push_swap}. Seuraavaksi suoritetaan Clear-operaatio, jolla pyritään tyhjentämään kohdesolmun viereiset solmut työntämällä niissä olevat toimijat muihin vapaisiin solmuihin. Esimerkkikuvassamme kohdesolmu on keskellä sijaitseva $v$, jonka vierellä on kaksi tyhjää solmua joihin sekä $r$ että $s$ voivat väistää. Jos Clear onnistui, palautetaan mahdollisesti edestä työnnetyt toimijat takaisin alkuperäisille paikoilleen. Toisin kuin Push, Swap voi siirtää korkeamman prioriteetin omaavia, sekä omiin maaleihinsa jo päässeitä toimijoita paikoiltaan. Tämä voi johtaa siihen, että $r$ on nyt jonkun muun toimijan $t$ maalisolmussa. Tilanne ratkaistaan Resolve-operaatiolla: Ensin $r$ yritetään työntää edelleen kohti maaliaan. Mikäli tämä onnistuu, voidaan $t$ palauttaa maalisolmuunsa. Mikäli ei, Swap:ia kutsutaan $r$:lle uudestaan. Jos tämä ei onnistu, suoritetaan Swap $t$:lle~\cite{de2013push}.
+\noindent Swap siirtää sekä $r$:n että $s$:n lähimpään sellaiseen paikkaan graafissa, jossa on riittävästi tilaa paikkojen vaihtamiseen, kuten nähdään kuvassa \ref{push_swap}. Seuraavaksi suoritetaan Clear-operaatio, jolla pyritään tyhjentämään kohdesolmun viereiset solmut työntämällä niissä olevat toimijat muihin vapaisiin solmuihin. Esimerkkikuvassamme kohdesolmu on keskellä sijaitseva $v$, jonka vierellä on kaksi tyhjää solmua joihin sekä $r$ että $s$ voivat väistää. Jos Clear onnistui, palautetaan mahdollisesti edestä työnnetyt toimijat takaisin alkuperäisille paikoilleen. Toisin kuin Push, Swap voi siirtää korkeamman prioriteetin omaavia, sekä omiin maaleihinsa jo päässeitä toimijoita paikoiltaan. Tämä voi johtaa siihen, että $r$ on nyt jonkun muun toimijan $t$ maalisolmussa. Tilanne ratkaistaan Resolve-operaatiolla: Ensin $r$ yritetään työntää edelleen kohti maaliaan. Mikäli tämä onnistuu, voidaan $t$ palauttaa maalisolmuunsa. Mikäli ei, Swap:ia kutsutaan $r$:lle uudestaan. Jos tämä ei onnistu, suoritetaan Swap $t$:lle~\cite{de2013push}.\newline
 
-Tässä algoritmissa vaivaa kuitenkin joukko ongelmia: Niin kutsuttujen \textit{monikulmiograafien} (polygon graph) tapauksessa algoritmi voi jäädä silmukkaan. Kyseiset graafit ovat määritelmällisesti sellaisia, että jokaisella solmulla on korkeintaan kaksi naapuria. Swap voi myös johtaa laittomaan tilaan (illegal state), mikäli sen toteuttaminen saa aikaan muita Swap-operaatioita ahtaassa tilassa, jolloin algoritmin rakenteesta johtuen operaation ennakkoehdot eivät tietyissä olosuhteissa enää päde. Graafissa esiintyvä kannas (isthmus), eli osio missä on peräkkäisiä solmuja joilla on vain kaksi naapuria, voi johtaa lukkiutumiseen. Clear-operaatio ei osaa käsitellä tilannetta, missä siirtämällä tiellä olevaa toimijaa kahdesti saataisiin riittävästi tilaa paikanvaihtoa varten.
+\noindent Tässä algoritmissa vaivaa kuitenkin joukko ongelmia: Niin kutsuttujen \textit{monikulmiograafien} (polygon graph) tapauksessa algoritmi voi jäädä silmukkaan. Kyseiset graafit ovat määritelmällisesti sellaisia, että jokaisella solmulla on korkeintaan kaksi naapuria. Swap voi myös johtaa laittomaan tilaan (illegal state), mikäli sen toteuttaminen saa aikaan muita Swap-operaatioita ahtaassa tilassa, jolloin algoritmin rakenteesta johtuen operaation ennakkoehdot eivät tietyissä olosuhteissa enää päde. Graafissa esiintyvä kannas (isthmus), eli osio missä on peräkkäisiä solmuja joilla on vain kaksi naapuria, voi johtaa lukkiutumiseen. Clear-operaatio ei osaa käsitellä tilannetta, missä siirtämällä tiellä olevaa toimijaa kahdesti saataisiin riittävästi tilaa paikanvaihtoa varten.\newline
 
 \begin{figure}
 \captionsetup{width=1\linewidth}
@@ -425,15 +436,15 @@ Tässä algoritmissa vaivaa kuitenkin joukko ongelmia: Niin kutsuttujen \textit{
 \label{push_swap}
 \end{figure}
 
-\subsection{Push and Rotate}
-
-Push and Rotate vuodelta 2013 on Push and Swap-algoritmin jatkokehitetty versio, joka pyrkii paikkaamaan siinä havaittuja puutteita: Monikulmiograafien ongelma on ratkaistu priorisoimalla reitinhaussa sellaisia reittejä, joiden varrella ei ole lainkaan jo maaliin päässeitä toimijoita. Clear-operaation toimintaa on laajennettu ja niin kutsuttu \textit{kannasongelma} on ratkaistu jakamalla kokonaisuus eri tavalla priorisoituihin aliongelmiin. Niinikään tekijöiden \textit{recursive resolve}:ksi nimeämä ongelma ratkaistaan uudella Rotate-operaatiolla~\cite{de2013push}.
+\noindent Push and Rotate vuodelta 2013 on Push and Swap-algoritmin jatkokehitetty versio, joka pyrkii paikkaamaan siinä havaittuja puutteita: Monikulmiograafien ongelma on ratkaistu priorisoimalla reitinhaussa sellaisia reittejä, joiden varrella ei ole lainkaan jo maaliin päässeitä toimijoita. Clear-operaation toimintaa on laajennettu ja niin kutsuttu \textit{kannasongelma} on ratkaistu jakamalla kokonaisuus eri tavalla priorisoituihin aliongelmiin. Niinikään tekijöiden \textit{recursive resolve}:ksi nimeämä ongelma ratkaistaan uudella Rotate-operaatiolla~\cite{de2013push}.
 
 \section{Yhteenveto}
 
-Reitinhaku ja sen erityistapaus rinnakkainen reitinhaku pysyvät avoimina ongelmina vuosikymmeniä kestäneestä tutkimuksesta huolimatta. Syynä tähän on ensisijaisesti algoritmien vaihteleva soveltuvuus eri tarpeisiin, ja toisaalta kasvaneet tehokkuusvaatimukset etenkin tietokonepelien saralla. Kehitys on toisaalta kulkenut kohti algoritmeja, jotka hyödyntävät useampitasoista hierarkiaa vähentämään laskentaresurssien tarvetta abstraktion kautta, sekä toisaalta kohti perinteistä poikkeavia lähestymistapoja, kuten \textit{Push and Swap} tai \textit{Push and Rotate}.
-Mikäli liikkumatila ei ole minimissään ja toimijoita on paljon, ovat \textit{erotetut} algoritmit, joissa toimijoita käsitellään itsenäisinä tekijöinä, yleensä tehokkaampia ratkaisuja. Ne eivät tavallisesti kuitenkaan johda yhtä optimaalisiin reittivalintoihin kuin \textit{yhdistetyt} algoritmit, joissa toimijoita käsitellään kokonaisuuden osina ja joiden reittejä suunnitellaan alusta asti muita toimijoita silmälläpitäen~\cite{luna2011push}.
-Ohjelmoijan vastuulle jääkin pohtia topologiaa, toimijoiden lukumäärää ja laskentanopeuden tarvetta sopivaa reitinhakualgoritmia valitessaan. Kaikkiin tilanteisiin sopivaa yleisalgoritmia ei ole olemassa, eikä sellaista kenties ole mahdollista toteuttaakaan.
+Reitinhaku ja rinnakkainen reitinhaku pysyvät avoimina ongelmina vuosikymmeniä kestäneestä tutkimuksesta huolimatta. Syynä tähän on ensisijaisesti algoritmien vaihteleva soveltuvuus eri tarpeisiin, ja toisaalta kasvaneet tehokkuusvaatimukset etenkin tietokonepelien saralla. Kehitys on toisaalta kulkenut kohti algoritmeja, jotka hyödyntävät useampitasoista hierarkiaa vähentämään laskentaresurssien tarvetta abstraktion kautta, sekä toisaalta kohti perinteistä poikkeavia lähestymistapoja, kuten \textit{Push and Rotate}.\newline
+
+\noindent Mikäli liikkumatila ei ole minimissään ja toimijoita on paljon, ovat \textit{erotetut} algoritmit, joissa toimijoita käsitellään itsenäisinä tekijöinä, yleensä tehokkaampia ratkaisuja. Ne eivät tavallisesti kuitenkaan johda yhtä optimaalisiin reittivalintoihin kuin \textit{yhdistetyt} algoritmit, joissa toimijoita käsitellään kokonaisuuden osina ja joiden reittejä suunnitellaan alusta asti muita toimijoita silmälläpitäen~\cite{luna2011push}.\newline
+
+\noindent Ohjelmoijan vastuulle jääkin pohtia topologiaa, toimijoiden lukumäärää ja laskentanopeuden tarvetta sopivaa reitinhakualgoritmia valitessaan. Kaikkiin tilanteisiin sopivaa yleisalgoritmia ei ole olemassa, eikä sellaista kenties ole mahdollista toteuttaakaan.
 
 
 % --- References ---

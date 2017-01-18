@@ -1,2 +1,1 @@
-## Kandidaatintutkielma
-### Rinnakkainen reitinhaku
+## Kandidaatintutkielma: Rinnakkainen reitinhaku

@@ -253,13 +253,14 @@ Rinnakkaisessa reitinhaussa on yleensä useita, joskus jopa satoja tai tuhansia,
 
 \noindent Mitä enemmän toimijoita tutkittavalla alueella on, sitä oleellisemmaksi muodostuu yhteentörmäyksien ja tahattoman reittien sulkemisen välttäminen. Yksi oleellinen ero lähestymistavoissa on käsitelläänkö toimijoita yhdistettynä (coupled) toimijana, vai toisistaan erotettuina (decoupled) toimijoina. Erotetussa menetelmässä reitit lasketaan jokaiselle toimijalle erikseen ja mahdolliset yhteentörmäykset ratkaistaan valitulla menettelyllä sikäli kuin niitä tapahtuu. Tämä menetelmä on tyypillinen tilanteille, joissa toimijoita on verrattaen paljon~\cite{sharon2013}. Yhdistetyssä menetelmässä kaikkia toimijoita käsitellään sen sijaan kokonaisuutena. Tämä voidaan toteuttaa esimerkiksi varaamalla graafin solmuja toimijoiden käyttöön siksi aikaa kun näiden odotetaan oman reitinhakunsa perusteella niissä olevan. Lukuisten toimijoiden yhtäaikainen huomioonottaminen luonnollisesti lisää ongelman monimutkaisuutta.\newline
 
-\noindent Yksi graafien ominaisuuksia on \textit{haarautuvuus} (branching). Tällä tarkoitetaan keskimääräistä lukumäärään naapurisolmuja, joihin jostakin graafin solmusta voidaan liikkua. Jos meillä on graafi, jonka haarautuvuus on $b$, niin erotetussa menetelmässä jokaisella toimijalla on $O(b)$ mahdollista liikettä, eli siirtymät toisiin solmuihin ja paikallaan odottaminen. Yhdistetyssä menetelmässä on sen sijaan joka askeleella otettava myös huomioon $k$ toimijaa, jolloin mahdollisia liikkeitä on $O((b+1)^k)$. Tämä hidastaa reittien laskemista~\cite{sharon2013}.\newline
+\noindent Yksi graafien ominaisuuksia on \textit{haarautuvuus} (branching). Tällä tarkoitetaan keskimääräistä lukumäärään naapurisolmuja, joihin jostakin graafin solmusta voidaan liikkua. Jos meillä on graafi, jonka haarautuvuus on $b$, niin erotetussa menetelmässä jokaisella toimijalla on $O(b)$ mahdollista liikettä, eli siirtymät toisiin solmuihin ja paikallaan odottaminen. Yhdistetyssä menetelmässä on sen sijaan joka askeleella otettava myös huomioon $k$ toimijaa, jolloin mahdollisia liikkeitä on $O((b)^k)$. Tämä hidastaa reittien laskemista~\cite{sharon2013}.\newline
 
 \noindent Kuten edellä todettiin, useimmat rinnakkaisen reitinhaun ratkaisemiseen kehitetyt menetelmät ovat A*-pohjaisia. A*-agoritmi vaatii kuitenkin verrattaen paljon resursseja käyttöönsä, mikäli kyse on laajemmasta reitinhakuongelmasta. Siksi onkin kehitetty useita erilaisia lähestymistapoja, joilla pyritään pitämään läpikäytävien solmujen määrä, ja siten laskentaresurssien tarve, mahdollisimman pienenä.
 
 
-
 \section{A*-pohjaiset rinnakkaisen reitinhaun algoritmit}
+
+Tässä kappaleessa käydään läpi muutamia algoritmeja, joissa A* on kiinteänä osana rakennetta. Kyse ei siis ole A*-varianteista, joissa A*:n toimintaa olisi vain mukautettu jotain toimintaympäristöä silmälläpitäen, vaan laajemmista algoritmeista jotka jossain toimintansa osana käyttävät A*:ä reittien muodostamisessa.
 
 %kuvaukset:\newline
 %Pattern Databases\newline
@@ -272,7 +273,7 @@ LRA*~\cite{silver05} on yleistermi joukolle A*-pohjaisia algoritmeja, jotka jaka
 
 \noindent Syklit ovat tässä menetelmässä sekä mahdollisia että yleisiä, joten ongelmaa on pyritty ratkaisemaan lisäämällä niin kutsuttua kohinaa etäisyysheuristiikkaan joka kerta kun yhteentörmäys havaitaan~\cite{silver05}. Jos siis jatkuvasti kohdataan esteitä jossakin solmussa tai jollakin alueella, niin algoritmin laskeman kustannuksen sinne etenemisestä pitäisi ennenpitkää nousta niin suureksi, että toimija hakeutuu ongelma-alueen ympäri tai etsii kokonaan uuden reitin.\newline
 
-\noindent Tällainen lähestymistapa johtaa ruuhkatilanteissa helposti oudolta näyttävään poukkoiluun, ja sen myötä prosessoriajan hävikkiin laskettaessa reitti jokaisen yhteentörmäyksen yhteydessä uudestaan.
+\noindent Tällainen lähestymistapa johtaa ruuhkatilanteissa helposti oudolta näyttävään poukkoiluun, ja sen myötä prosessoriajan hävikkiin laskettaessa reitti jokaisen yhteentörmäyksen yhteydessä uudestaan. LRA* toimii heikosti sellaisessa topologiassa, jossa on kapeita käytäviä ja lukuisia toimijoita suhteessa käytettävissä olevaan tilaan.
 
 
 \subsection{Cooperative A* (CA*)}
@@ -282,8 +283,8 @@ CA*~\cite{silver05} pyrkii estämään yhteentörmäykset ennalta ottamalla aika
 \noindent Tämän algoritmin heikkoutena on kyvyttömyys ratkaista joitakin verrattaen yksinkertaisia tilanteita. Kuvassa \ref{meeting_conflict} nähdään tilanne, missä toimijat S1 ja S2 pyrkivät vastaavasti maaleihin G1 ja G2. Intuitiivisesti nähdään, että jommankumman toimijan olisi mahdollista joko väistää sivulle tai nämä voisivat vaihtaa paikkoja kohdatessaan ja jatkaa sitten määränpäihinsä. Perusmuotoinen CA* ei kuitenkaan pysty tällaiseen ratkaisuun, sillä algoritmissa ei ole tällaista toiminnallisuutta.\newline
 
 \begin{figure}
-\captionsetup{width=.65\linewidth}
-\includegraphics{meeting_conflict}
+\captionsetup{width=.8\linewidth}
+\includegraphics[scale=0.7]{meeting_conflict}
 \centering
 \caption{Esimerkki kohtaamis-ongelmasta, jossa toimijat S1 ja S2 voivat päästä maalisolmuihin G1 ja G2 vain jos jompikumpi väistää sivulle~\cite{silver05}.}
 \label{meeting_conflict}
@@ -320,47 +321,48 @@ Rinnakkaisen reitinhaun optimoimiseen pyrkivä CBS-algoritmi~\cite{sharon15} kä
 \noindent Alemmalla tasolla puolestaan voidaan käyttää tavanomaista yhden toimijan reitinhakualgoritmia kuten A* hyödyntäen samalla ylemmältä tasolta saatua tietoa siitä, missä ja milloin on odotettavissa yhteentörmäys jonkun toisen toimijan kanssa. Mikäli kaikesta huolimatta alemmalla tasolla havaitaan yhteentörmäyksiä, päivitetään ylemmän tason rajoituspuuta lisäämällä siihen solmuja löysemmin kriteerein. Tämän jälkeen jokaisen solmun kohdalla tehdään uusi alemman tason haku ja toistetaan menettely tarvittaessa.
 \newline
 
-\begin{algorithm}
-\caption{ICBS-algoritmin ylempi taso}
-\label{alg_icbs}
-\begin{algorithmic}[1]
-\State\textbf{Main(MAPF problem} instance\textbf{)}
-	\State\indent Init $R$ with low-level paths for the individual agents
-	\State\indent insert $R$ into OPEN
-	\State\indent\textbf{while} OPEN $not$ $empty$ \textbf{do}
-		\State\indent\indent $N\leftarrow$ best node from OPEN \textit{// lowest solution cost}
-		\State\indent\indent Simulate the paths in $N$ and find all conflicts
-		\State\indent\indent\textbf{if} $N$ \textit{has no conflict} \textbf{then}
-		\State\indent\indent\indent\textbf{return} $N.solution$ \textit{// N is goal}
-		\State\indent\indent $C\leftarrow$ find-cardinal/semi-cardinal-conflict($N$) \textit{// (PC)}
-		\State\indent\indent\textbf{if} \textit{C is not cardinal} \textbf{then}
-			\State\indent\indent\indent\textbf{if} \textit{Find-bypass(N, C)} \textbf{then} \textit{// (BP)}
-				\State\indent\indent\indent\indent Continue
-		\State\indent\indent\textbf{if} \textit{should-merge($a_i$, $a_j$)} \textbf{then} \textit{// Optional, MA-CBS:}
-			\State\indent\indent\indent $a_{ij}$ = merge($a_i$, $a_j$)
-			\State\indent\indent\indent\textbf{if} \textit{MR active} \textbf{then} \textit{// (MR)}
-				\State\indent\indent\indent\indent Restart search
-			\State\indent\indent\indent Update N.constraints()
-			\State\indent\indent\indent Update N.solution by invoking low-level($a_{ij}$)
-			\State\indent\indent\indent Insert N back into OPEN
-			\State\indent\indent\indent continue \textit{// go back to the while statement}
-		\State\indent\indent\textbf{foreach} \textit{agent $a_i$ in C} \textbf{do}
-			\State\indent\indent\indent $A\leftarrow$ Generate Child($N$, (\textit{$a_i$, s, t}))
-			\State\indent\indent\indent Insert $A$ into OPEN
-\newline
-\State\textbf{Generate Child(Node $N$, Constraint $C$ =} \textit{($a_i$, s, t)}\textbf{)}
-\State\indent$A.constraints\leftarrow$ $N.constraints$ + \textit{($a_i$, s, t)}
-\State\indent$A.solution\leftarrow N.solution$
-\State\indent Update $A.solution$ by invoking \textit{low level}($a_i$)
-\State\indent$A.cost\leftarrow$ \textit{SIC}($A.solution$)
-\State\indent\textbf{return} $A$
-
-\end{algorithmic}
-\end{algorithm}
+%\begin{algorithm}
+%\caption{ICBS-algoritmin ylempi taso}
+%\label{alg_icbs}
+%\begin{algorithmic}[1]
+%\State\textbf{Main(MAPF problem} instance\textbf{)}
+%	\State\indent Init $R$ with low-level paths for the individual agents
+%	\State\indent insert $R$ into OPEN
+%	\State\indent\textbf{while} OPEN $not$ $empty$ \textbf{do}
+%		\State\indent\indent $N\leftarrow$ best node from OPEN \textit{// lowest solution cost}
+%		\State\indent\indent Simulate the paths in $N$ and find all conflicts
+%		\State\indent\indent\textbf{if} $N$ \textit{has no conflict} \textbf{then}
+%		\State\indent\indent\indent\textbf{return} $N.solution$ \textit{// N is goal}
+%		\State\indent\indent $C\leftarrow$ find-cardinal/semi-cardinal-conflict($N$) \textit{// (PC)}
+%		\State\indent\indent\textbf{if} \textit{C is not cardinal} \textbf{then}
+%			\State\indent\indent\indent\textbf{if} \textit{Find-bypass(N, C)} \textbf{then} \textit{// (BP)}
+%				\State\indent\indent\indent\indent Continue
+%		\State\indent\indent\textbf{if} \textit{should-merge($a_i$, $a_j$)} \textbf{then} \textit{// Optional, MA-CBS:}
+%			\State\indent\indent\indent $a_{ij}$ = merge($a_i$, $a_j$)
+%			\State\indent\indent\indent\textbf{if} \textit{MR active} \textbf{then} \textit{// (MR)}
+%				\State\indent\indent\indent\indent Restart search
+%			\State\indent\indent\indent Update N.constraints()
+%			\State\indent\indent\indent Update N.solution by invoking low-level($a_{ij}$)
+%			\State\indent\indent\indent Insert N back into OPEN
+%			\State\indent\indent\indent continue \textit{// go back to the while statement}
+%		\State\indent\indent\textbf{foreach} \textit{agent $a_i$ in C} \textbf{do}
+%			\State\indent\indent\indent $A\leftarrow$ Generate Child($N$, (\textit{$a_i$, s, t}))
+%			\State\indent\indent\indent Insert $A$ into OPEN
+%\newline
+%\State\textbf{Generate Child(Node $N$, Constraint $C$ =} \textit{($a_i$, s, t)}\textbf{)}
+%\State\indent$A.constraints\leftarrow$ $N.constraints$ + \textit{($a_i$, s, t)}
+%\State\indent$A.solution\leftarrow N.solution$
+%\State\indent Update $A.solution$ by invoking \textit{low level}($a_i$)
+%\State\indent$A.cost\leftarrow$ \textit{SIC}($A.solution$)
+%\State\indent\textbf{return} $A$
+%
+%\end{algorithmic}
+%\end{algorithm}
 
 
 \section{Muut rinnakkaisen reitinhaun algoritmit}
 
+Tässä kappaleessa käsiteltävät algoritmit edustavat uudempaa sukupolvea, eikä niiden toiminta kiinteästi riipu A*-algoritmin hyödyntämisestä. Yhteisenä nimittäjänä voitaneen pitää pyrkimystä rajoittaa resurssien käyttö minimiin tinkimättä kuitenkaan tehokkuudesta.
 
 \subsection{Increasing Cost Tree Search}
 
@@ -381,38 +383,38 @@ Vuonna 2012 julkaistu ICTS-algoritmi on kaksitasoista hierarkiaa hyödyntävä a
 \end{figure}
 
 
-\begin{algorithm}
-\caption{Increasing Cost Tree}
-\label{alg_icts}
-\begin{algorithmic}[1]
-\State\textbf{Input:} \emph{(k, n)} MAPF
-\State Build the root of the ICT
-\State\textbf{foreach} \emph{ICT node in a breadth-first manner} \textbf{do}
-\State\indent\textbf{foreach} \emph{agent $a_i$} \textbf{do}
-\State\indent\indent Build the corresponding $MDD_i$
-\State\indent\textbf{[}\indent\textbf{//optional}
-\State\indent\textbf{foreach} \emph{pair (triple) of agents} \textbf{do}
-\State\indent\indent Perform node-pruning
-\State\indent\indent\textbf{if} \emph{node-pruning failed} \textbf{then}
-\State\indent\indent\indent\textbf{Break} \emph{//Conflict found. Next ICT node}
-\State\indent\textbf{]}
-\State\indent Search the $k$-agent MDD search space \emph{// low-level search}
-\State\indent\textbf{if} \emph{goal node was found} \textbf{then}
-\State\indent\indent\textbf{return} Solution
-\end{algorithmic}
-\end{algorithm}
+%\begin{algorithm}
+%\caption{Increasing Cost Tree}
+%\label{alg_icts}
+%\begin{algorithmic}[1]
+%\State\textbf{Input:} \emph{(k, n)} MAPF
+%\State Build the root of the ICT
+%\State\textbf{foreach} \emph{ICT node in a breadth-first manner} \textbf{do}
+%\State\indent\textbf{foreach} \emph{agent $a_i$} \textbf{do}
+%\State\indent\indent Build the corresponding $MDD_i$
+%\State\indent\textbf{[}\indent\textbf{//optional}
+%\State\indent\textbf{foreach} \emph{pair (triple) of agents} \textbf{do}
+%\State\indent\indent Perform node-pruning
+%\State\indent\indent\textbf{if} \emph{node-pruning failed} \textbf{then}
+%\State\indent\indent\indent\textbf{Break} \emph{//Conflict found. Next ICT node}
+%\State\indent\textbf{]}
+%\State\indent Search the $k$-agent MDD search space \emph{// low-level search}
+%\State\indent\textbf{if} \emph{goal node was found} \textbf{then}
+%\State\indent\indent\textbf{return} Solution
+%\end{algorithmic}
+%\end{algorithm}
 
 \subsection{Tree-based agent swapping strategy (TASS)}
 
-Tämä vuoden 2011 algoritmi hyödyntää puurakenteita ja olemassaolevien ei-puumaisten graafien konvertoimiseen onkin kehittäjien toimesta luotu \textit{Graph-to-Tree Decomposition (GTD)} -algoritmeja. TASS on kehitetty erityisesti tilanteisiin, joissa vapaata liikkumatilaa on hyvin vähän.\newline
+Tämä vuoden 2011 algoritmi hyödyntää puurakenteita ja olemassaolevien ei-puumaisten graafien konvertoimiseen onkin kehittäjien toimesta luotu \textit{Graph-to-Tree Decomposition (GTD)} -algoritmeja. TASS~\cite{khorshid2011polynomial} on kehitetty erityisesti tilanteisiin, joissa vapaata liikkumatilaa on hyvin vähän.\newline
 
 \noindent TASS:n toimintaperiaatteena on siis topologian käsittely puuna, jossa siirtymät solmujen välillä on sallittu molempiin suuntiin. Puiden rakenteesta johtuen risteyksiä (tai haaroja) käytetään hyväksi toimijoiden uudelleenjärjestämisessä silloin, kun toimijat ovat toistensa tiellä. Tämä on havainnollistettu kuvassa \ref{tass}, missä $u$ ja $v$ ovat vierekkäin, eikä välittömässä läheisyydessä ole vapaita solmuja joihin väistää. Tässä algoritmissa paikkoja ei voi vaihtaa keskenään, vaan ne on uudelleenjärjestettävä tekemällä tilaa lähimpään risteyssolmuun ja sen naapureihin, siirrettävä alkiot risteyksen yli uudelleenjärjestämistä varten, ja sitten palautettava lähtötilanne muilta osin ennalleen.
-Suurempi haarautuvuus nopeuttaa algoritmin toimintaa, koska tämä keskimäärin lyhentää etäisyyttä lähimpään sellaiseen paikkaan puussa, missä uudelleenjärjestely voidaan suorittaa~\cite{khorshid2011polynomial}.
+Suurempi haarautuvuus nopeuttaa algoritmin toimintaa, koska tämä keskimäärin lyhentää etäisyyttä lähimpään sellaiseen paikkaan puussa, missä uudelleenjärjestely voidaan suorittaa.
 
 
-\begin{figure}
+\begin{figure}[h]
 \captionsetup{width=1\linewidth}
-\includegraphics[scale=0.45]{tass}
+\includegraphics[scale=0.4]{tass}
 \centering
 \caption{Haarautuman hyväksikäyttö uudelleenjärjestämisessä TASS-algoritmilla~\cite{khorshid2011polynomial}.}
 \label{tass}
@@ -436,15 +438,45 @@ Push and Swap edustaa rinnakkaisen reitinhaun uutta sukupolvea (2011) ja on verr
 \label{push_swap}
 \end{figure}
 
-\noindent Push and Rotate vuodelta 2013 on Push and Swap-algoritmin jatkokehitetty versio, joka pyrkii paikkaamaan siinä havaittuja puutteita: Monikulmiograafien ongelma on ratkaistu priorisoimalla reitinhaussa sellaisia reittejä, joiden varrella ei ole lainkaan jo maaliin päässeitä toimijoita. Clear-operaation toimintaa on laajennettu ja niin kutsuttu \textit{kannasongelma} on ratkaistu jakamalla kokonaisuus eri tavalla priorisoituihin aliongelmiin. Niinikään tekijöiden \textit{recursive resolve}:ksi nimeämä ongelma ratkaistaan uudella Rotate-operaatiolla~\cite{de2013push}.
+\noindent Push and Swap-algoritmin ongelmat on pyritty ratkaisemaan vuonna 2013 julkaistulla Push and Rotate-algoritmilla~\cite{de2013push}. Siinä monikulmiograafien ongelma on ratkaistu priorisoimalla reitinhaussa sellaisia reittejä, joiden varrella ei ole lainkaan jo maaliin päässeitä toimijoita. Tämä lähestymistapa välttää niin sanotun \textit{elolukon} (livelock), missä kaksi toimijaa vaihtaa keskenään paikkaa vuorotellen ilman, että reitinhaku koskaan ratkeaa. Myös Clear-operaation toimintaa on laajennettu ottamaan huomioon laajempi siirtomahdollisuuksien kirjo. Niin kutsuttu \textit{kannasongelma} on ratkaistu jakamalla kokonaisuus eri tavalla priorisoituihin aliongelmiin: eri toimijaryhmät saavat eritasoiset prioriteetit, jolloin korkeamman prioriteetit ryhmät pääsevät etenemään maaliin ikäänkuin etuajo-oikeudella.\newline
+
+\noindent Ahtaissa ja ruuhkaisissa tilanteissa Swap-operaation kutsuma Resolve saa aikaan lisää Resolve-operaatioita toimijoiden peräjälkeen pyrkiessä hakeutumaan uusiin asemiin, mikä voi johtaa virhetilanteeseen Resolve:n sijoittaessa toimijoita oman toimintaperiaatteensa vastaisesti. Käytännössä tämä näkyy tilanteina, missä kahden toimijan piti päätyä operaation tuloksena vierekkäin, mutta rekursiiviset Resolve-kutsut jättivät nämä lopulta erilleen.\newline
+
+\noindent Kuvassa \ref{pr1} on havainnollistettu algoritmin toimintaa. Solmujen mahdollinen kaksinkertainen kehä tarkoittaa, että siinä oleva toimija on jo löytänyt maaliinsa. Katkoviivalliset nuolet osoittavat mihin solmuihin eri toimijat pyrkivät, vaaleanpunainen väri tarkoittaa Plan-apuoperaatiota ja keltainen väri Resolve-operaatiota. Plan suorittaa kaksi Swap-operaatiota siirtäen toimijan $a8$ graafin oikeaan laitaan. Tieltä piti siirtää toimijat $a6$, joka ei ole enää maalisolmussaan, sekä $a11$. Jotta $a6$ saadaan takaisin oikealle paikalleen, täytyy $a11$ siirtää pois tieltä. Tämä tapahtuu siirtämällä $a11$ kohti omaa maalisolmuaan. Tämä johtaa $a3$:n ja $a9$ siirtämiseen pois edestä.\newline
+
+\noindent Kuvassa \ref{pr2} puolestaan nähdään, että $a11$ on nyt maalissa, mutta keltaisella merkittyjä Resolve-operaation odottajia on nyt kaksi, $a6$ ja $a3$. Siirtämällä $a9$ maalisolmuunsa, $a2$ siirtyy pois maalistaan, ja graafissa on selvä sykli ($a2$, $a3$, $a6$ ja $a10$). Tilanne ratkaistaan kiertämällä (rotate) toimijoita graafissa askel vastapäivään, jonka tulokset nähdään kuvassa \ref{pr3}. Jäljellä on enää kaksi toimijaa, $a10$ ja $a12$. Koska nämä ovat vierekkäin ja pitävät hallussaan toistensa maalisolmuja, voidaan Swap-operaatiolla vaihtaa niiden paikat ja reitinhaku on valmis.\newline
+
+\begin{figure}[h]
+\captionsetup{width=0.9\linewidth}
+\includegraphics[scale=0.6]{pr1}
+\centering
+\caption{Plan-operaatio merkitty punaisella, Resolve keltaisella. Ensin siirretään $a8$ kaksi solmua oikealle, ja sitten $a11$ kaksi solmua ylös~\cite{de2012cooperative}.}
+\label{pr1}
+\end{figure}
+
+\begin{figure}[h]
+\captionsetup{width=0.9\linewidth}
+\includegraphics[scale=0.6]{pr2}
+\centering
+\caption{Resolve-operaatiota (keltaisella) odottavat toimijat muodostavat $a9$:n siirtämisen jälkeen syklin yhdessä $a10$:n kanssa~\cite{de2012cooperative}.}
+\label{pr2}
+\end{figure}
+
+\begin{figure}[h]
+\captionsetup{width=0.9\linewidth}
+\includegraphics[scale=0.6]{pr3}
+\centering
+\caption{Rotate-operaation jäljiltä jäljelle jää enää $a10$:n ja $a12$:n paikkojen vaihtaminen~\cite{de2012cooperative}.}
+\label{pr3}
+\end{figure}
 
 \section{Yhteenveto}
 
-Reitinhaku ja rinnakkainen reitinhaku pysyvät avoimina ongelmina vuosikymmeniä kestäneestä tutkimuksesta huolimatta. Syynä tähän on ensisijaisesti algoritmien vaihteleva soveltuvuus eri tarpeisiin, ja toisaalta kasvaneet tehokkuusvaatimukset etenkin tietokonepelien saralla. Kehitys on toisaalta kulkenut kohti algoritmeja, jotka hyödyntävät useampitasoista hierarkiaa vähentämään laskentaresurssien tarvetta abstraktion kautta, sekä toisaalta kohti perinteistä poikkeavia lähestymistapoja, kuten \textit{Push and Rotate}.\newline
+Reitinhaun toteuttaminen pysyy edelleen avoimena ongelmana vuosikymmeniä kestäneestä tutkimuksesta huolimatta. Syynä tähän on ensisijaisesti algoritmien vaihteleva soveltuvuus eri tarpeisiin, ja toisaalta kasvaneet tehokkuusvaatimukset etenkin tietokonepelien saralla. Kehitys on toisaalta kulkenut kohti algoritmeja, jotka hyödyntävät useampitasoista hierarkiaa vähentämään laskentaresurssien tarvetta abstraktion kautta, sekä toisaalta kohti perinteistä poikkeavia lähestymistapoja, kuten \textit{Push and Rotate}.\newline
 
 \noindent Mikäli liikkumatila ei ole minimissään ja toimijoita on paljon, ovat \textit{erotetut} algoritmit, joissa toimijoita käsitellään itsenäisinä tekijöinä, yleensä tehokkaampia ratkaisuja. Ne eivät tavallisesti kuitenkaan johda yhtä optimaalisiin reittivalintoihin kuin \textit{yhdistetyt} algoritmit, joissa toimijoita käsitellään kokonaisuuden osina ja joiden reittejä suunnitellaan alusta asti muita toimijoita silmälläpitäen~\cite{luna2011push}.\newline
 
-\noindent Ohjelmoijan vastuulle jääkin pohtia topologiaa, toimijoiden lukumäärää ja laskentanopeuden tarvetta sopivaa reitinhakualgoritmia valitessaan. Kaikkiin tilanteisiin sopivaa yleisalgoritmia ei ole olemassa, eikä sellaista kenties ole mahdollista toteuttaakaan.
+\noindent Ohjelmoijan vastuulle jääkin pohtia topologiaa, toimijoiden lukumäärää ja laskentanopeuden tarvetta sopivaa reitinhakualgoritmia valitessaan. Kaikkiin tilanteisiin sopivaa yleisalgoritmia ei toistaiseksi ole olemassa, eikä sellaista kenties ole mahdollista toteuttaakaan.
 
 
 % --- References ---

@@ -139,15 +139,11 @@ Computing methodologies $\rightarrow$ Artificial intelligence $\rightarrow$ Cont
 
 \section{Johdanto}
 
-Reitinhaussa on pohjimmiltaan kyse mahdollisimman suoran ja nopean polun löytämisestä kahden pisteen välillä jossakin topologiassa. Topologia, eli kenttä tai alue, voi olla reaalimaailmassa, kuten tieverkosto autonavigaattorin reitinhaussa tai vaikkapa kokoonpanolinjan robotin käytettävissä oleva liikkumatila. Topologia voi myös olla täysin virtuaalinen, kuten tietokonepelien pelimaailmat. Muita käyttökohteita ovat muun muassa liikenteen ja väkijoukkojen mallintaminen, poliisin ja pelastustoimen tehtävät, sekä tietoliikenneverkot. Käyttökohteesta riippumatta topologia, jossa reittejä etsitään, on mallinnettava tietorakenteiksi sen läpikäyntiä varten.\newline
+Reitinhaussa on pohjimmiltaan kyse mahdollisimman suoran ja nopean polun löytämisestä kahden pisteen välillä jossakin topologiassa. Topologia, eli kenttä tai alue, voi olla reaalimaailmassa, kuten tieverkosto autonavigaattorin reitinhaussa tai vaikkapa kokoonpanolinjan robotin käytettävissä oleva liikkumatila. Topologia voi myös olla täysin virtuaalinen, kuten tietokonepelien pelimaailmat. Muita käyttökohteita ovat muun muassa liikenteen ja väkijoukkojen mallintaminen, poliisin ja pelastustoimen tehtävät, lennonjohto, sekä tietoliikenneverkot. Käyttökohteesta riippumatta topologia, jossa reittejä etsitään, on mallinnettava tietorakenteiksi sen läpikäyntiä varten.\newline
 
 \noindent Oli sovelluskohde mikä hyvänsä, varsinaista reitinhakua tarvitaan vain mikäli reitin löytäminen jokaisella suorituskerralla  olla täysin suoraviivaista ja triviaalia. Mikäli näin olisi, asia voitaisiin ratkaista yksinkertaisesti laskemalla lyhin etäisyys mitä pitkin liikkua suoraan kohteeseen ja toimia sen mukaan. Kysymys on siis reittien löytämisestä tietyin reunaehdoin. Esimerkiksi navigaattoria käyttävä autoilija haluaa kaikella todennäköisyydellä ajaa määränpäähänsä lyhintä reittiä teitä pitkin oikaisematta yhdenkään metsän tai järven lävitse.\newline
 
 \noindent Tässä tutkielmassa tarkastellaan ensin reitinhakua itsessään ja sen ratkaisemista yhden toimijan (agent) reitinhakualgoritmeilla. Jäljempänä käsittelemme monen yhtaikaisen toimijan reitinhakua (multi-agent pathfinding, MAPF) ja siihen kehitettyjä algoritmeja. 
-
-% Write some science here.
-
-% Esimerkkilause ja lähdeviite~\cite{esimerkki}.
 
 \section{Reitinhaku}
 
@@ -249,7 +245,7 @@ Tämä algoritmi poikkeaa A*:stä siinä, että reitinhaun apuna käytetään yh
 
 \section{Rinnakkainen reitinhaku}
 
-Rinnakkaisessa reitinhaussa on yleensä useita, joskus jopa satoja tai tuhansia, eri toimijoita. Tällainen monen toimijan rinnakkainen reitinhaku (multi-agent pathfinding, MAPF) tuo yksittäisen toimijan reitinhakuun verrattuna uusia ongelmia. On muun muassa ratkaistava sallitaanko reittien risteäminen, voiko kaksi tai useampi toimijaa olla samaan aikaan samassa paikassa, tuleeko liikkumista porrastaa odottamalla että reitti edessä vapautuu ja tuleeko toimijan väistää ollessaan toisen toimijan tiellä~\cite{erdem13}. Näiden ongelmien ratkaisemiseen kehitetyistä algoritmeja useimmat hyödyntävät A*-algoritmia jollakin tapaa~\cite{sharon15}.\newline
+Rinnakkainen reitinhaku on ongelmana yhden toimijan reitinhakua vaikeampi: tilojen määrä ja haarautuvuus kasvaa eksponentiaalisesti suhteessa toimijoiden määrään~\cite{wang2008fast}. Rinnakkaisessa reitinhaussa on yleensä useita, joskus jopa satoja tai tuhansia, eri toimijoita. Tällainen monen toimijan rinnakkainen reitinhaku (multi-agent pathfinding, MAPF) tuo yksittäisen toimijan reitinhakuun verrattuna uusia ongelmia. On muun muassa ratkaistava sallitaanko reittien risteäminen, voiko kaksi tai useampi toimijaa olla samaan aikaan samassa paikassa, tuleeko liikkumista porrastaa odottamalla että reitti edessä vapautuu ja tuleeko toimijan väistää ollessaan toisen toimijan tiellä~\cite{erdem13}. Ongelman ratkaisuun kehitetyistä algoritmeista useimmat hyödyntävät A*-algoritmia jollakin tapaa~\cite{sharon15}.\newline
 
 \noindent Mitä enemmän toimijoita tutkittavalla alueella on, sitä oleellisemmaksi muodostuu yhteentörmäyksien ja tahattoman reittien sulkemisen välttäminen. Yksi oleellinen ero lähestymistavoissa on käsitelläänkö toimijoita yhdistettynä (coupled) toimijana, vai toisistaan erotettuina (decoupled) toimijoina. Erotetussa menetelmässä reitit lasketaan jokaiselle toimijalle erikseen ja mahdolliset yhteentörmäykset ratkaistaan valitulla menettelyllä sikäli kuin niitä tapahtuu. Tämä menetelmä on tyypillinen tilanteille, joissa toimijoita on verrattaen paljon~\cite{sharon2013}. Yhdistetyssä menetelmässä kaikkia toimijoita käsitellään sen sijaan kokonaisuutena. Tämä voidaan toteuttaa esimerkiksi varaamalla graafin solmuja toimijoiden käyttöön siksi aikaa kun näiden odotetaan oman reitinhakunsa perusteella niissä olevan. Lukuisten toimijoiden yhtäaikainen huomioonottaminen luonnollisesti lisää ongelman monimutkaisuutta.\newline
 

@@ -1,1 +1,2 @@
-# Kandi
+## Kandidaatintutkielma
+### Rinnakkainen reitinhaku

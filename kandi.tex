@@ -418,7 +418,7 @@ Suurempi haarautuvuus nopeuttaa algoritmin toimintaa, koska tämä keskimäärin
 
 \subsection{Push and Swap ja Push and Rotate}
 
-Push and Swap edustaa rinnakkaisen reitinhaun uutta sukupolvea (2011) ja on verrattaen yksinkertainen toimintaperiaatteeltaan. Nimensä mukaisesti algoritmissa on kaksi keskeistä operaatiota, \textit{Push} ja \textit{Swap}, sekä kaksi apuoperaatiota, \textit{Clear} ja \textit{Resolve}. Toimijoiden suoritusjärjestys määräytyy jonkin ennaltamääritellyn prioriteettijonon perusteella~\cite{luna2011push}.\newline
+Push and Swap~\cite{luna2011push} edustaa rinnakkaisen reitinhaun uutta sukupolvea (2011) ja on verrattaen yksinkertainen toimintaperiaatteeltaan. Nimensä mukaisesti algoritmissa on kaksi keskeistä operaatiota, \textit{Push} ja \textit{Swap}, sekä kaksi apuoperaatiota, \textit{Clear} ja \textit{Resolve}. Toimijoiden suoritusjärjestys määräytyy jonkin ennaltamääritellyn prioriteettijonon perusteella.\newline
 
 \noindent Push-operaatio liikuttaa toimijaa $r$ kohti maalia. Mikäli maaliin ei päästä jonkun toisen toimijan $s$ tukkiessa tien ja ollessa alempi prioriteetiltaan, Push yrittää työntää tiellä olevat toimijat pois edestä vapaisiin solmuihin ja jatkaa sitten maaliin. Mikäli vapaata tilaa ei ole, tai työntäminen vaatisi $r$:n itsensä siirtymistä, kutsutaan Swap-operaatiota. Swap:iin siirrytään myös mikäli työnnettävällä toimijalla on korkeampi prioriteetti, tai se on jo omassa maalisolmussaan.\newline
 

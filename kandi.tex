@@ -143,7 +143,7 @@ Reitinhaussa on pohjimmiltaan kyse mahdollisimman suoran ja nopean polun löytä
 
 \noindent Oli sovelluskohde mikä hyvänsä, varsinaista reitinhakua tarvitaan mikäli reitin löytäminen jokaisella suorituskerralla ei ole täysin suoraviivaista ja triviaalia. Asia voitaisiin muutoin ratkaista yksinkertaisesti laskemalla lyhin etäisyys mitä pitkin liikkua suoraan kohteeseen ja toimia sen mukaan. Kysymys on siis reittien löytämisestä tietyin reunaehdoin. Esimerkiksi navigaattoria käyttävä autoilija haluaa kaikella todennäköisyydellä ajaa määränpäähänsä lyhintä reittiä teitä pitkin oikaisematta yhdenkään metsän tai järven lävitse.\newline
 
-\noindent Tässä tutkielmassa tarkastellaan ensin reitinhakua itsessään ja sen ratkaisemista yhden toimijan (agent) reitinhakualgoritmeilla. Jäljempänä käsittelemme monen yhtaikaisen toimijan reitinhakua (multi-agent pathfinding, MAPF) ja siihen kehitettyjä algoritmeja. 
+\noindent Tässä tutkielmassa tarkastellaan ensin reitinhakua itsessään ja sen ratkaisemista yhden toimijan (agent) reitinhakualgoritmeilla. Jäljempänä käsittelemme monen yhtaikaisen toimijan reitinhakua (multi-agent pathfinding, MAPF) ja joitakin siihen kehitettyjä algoritmeja. 
 
 \section{Reitinhaku}
 
@@ -153,7 +153,7 @@ Reitinhaun toteuttaminen jakaantuu kahteen vaiheeseen: toimintaympäristöstä t
 
 \noindent Esteiden kiertämisen ja mahdollisesti muuttuvan toimintaympäristön lisäksi reitinhaun yksi keskeisiä ongelmia on resurssien käyttö. Mitä laajemmassa topologiassa reitinhaku suoritetaan, sitä enemmän laskentaresursseja (muistia, prosessoriaikaa) siihen menee. Joissakin tilanteissa voidaan tyytyä osittaiseen reitinhakuun, eli reittiä ei lasketa loppuun asti, vaan ainoastaan johonkin tiettyyn ennaltamäärättyyn pisteeseen ja uusi reitinhaku tehdään kun jokin välietappi on saavutettu. Tässä on luonnollisesti varmistuttava siitä, että valittuun suuntaan lähteminen todella mahdollistaa perille pääsemisen.\newline
 
-Toinen lähestymistapa on kaikkien mahdollisten reittien laskeminen ennakkoon, jolloin haluttu reitti kahden sijainnin välillä yksinkertaisesti haetaan taulukosta tarvittaessa. Tämän menetelmän heikkoutena on, että kyseisestä taulukosta saattaa tulla niin suuri, että varsinainen reitinhaku on nopeampi toteuttaa. Niinikään se vaatii käytännössä mainitun taulukon pitämistä jatkuvasti muistissa. Koska reitinhaulta usein vaaditaan reaaliaikaisuutta, tällainen lähestymistapa soveltuu vain verrattaen pieneen toimintaympäristöön.\newline
+\noindent Toinen lähestymistapa on kaikkien mahdollisten reittien laskeminen ennakkoon, jolloin haluttu reitti kahden sijainnin välillä yksinkertaisesti haetaan taulukosta tarvittaessa. Tämän menetelmän heikkoutena on, että kyseisestä taulukosta saattaa tulla niin suuri, että varsinainen reitinhaku on nopeampi toteuttaa. Niinikään se vaatii käytännössä mainitun taulukon pitämistä jatkuvasti muistissa. Koska reitinhaulta usein vaaditaan reaaliaikaisuutta, tällainen lähestymistapa soveltuu vain verrattaen pieneen toimintaympäristöön.\newline
 
 %pelimaailman tyypillinen tilanne tähän
 
